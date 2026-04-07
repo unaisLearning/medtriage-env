@@ -7,6 +7,19 @@ description: >
   multi-patient prioritisation to dynamic deterioration management.
 
 author: MedTriageEnv Team
+curriculum:
+  enabled: true
+  progression: linear
+  levels:
+    - name: easy
+      task: task1_single_patient
+      description: Single patient ESI classification
+    - name: medium
+      task: task2_multi_patient
+      description: Multi-patient urgency ranking
+    - name: hard
+      task: task3_dynamic_deterioration
+      description: Dynamic deterioration response
 tags:
   - openenv
   - healthcare
