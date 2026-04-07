@@ -13,6 +13,7 @@ COPY medtriage_env/ ./medtriage_env/
 COPY inference.py ./inference.py
 
 ENV MEDTRIAGE_TASK=task1_single_patient
+ENV ENABLE_WEB_INTERFACE=true
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
