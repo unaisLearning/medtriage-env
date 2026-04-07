@@ -44,7 +44,7 @@ Task 3 is genuinely hard — the agent must detect deterioration trends across s
 
 ## Baseline Scores
 
-Model: meta-llama/Llama-3.1-8B-Instruct via HuggingFace Router
+Baseline agent: rule-based heuristic (vital sign thresholds). LLM agent scores expected to be higher.
 
 | Task | Seed 42 | Seed 7 | Seed 99 | Average |
 |------|---------|--------|---------|---------|
