@@ -15,13 +15,13 @@ tags:
 # MedTriageEnv 🏥
 ### Emergency Department Triage Simulator — OpenEnv RL Environment
 
-> **136 million ED visits** occur annually in the US. Triage errors contribute to **1 in 4 preventable adverse events** in hospitals. MedTriageEnv is the **first open-source RL environment** for emergency department triage — training AI agents to make the same life-critical decisions ED nurses and physicians make under time pressure every day.
+> **136 million ED visits** occur annually in the US. Triage errors contribute to **1 in 4 preventable adverse events** in hospitals. MedTriageEnv is an **open-source RL environment** for emergency department triage — training AI agents to make the same life-critical decisions ED nurses and physicians make under time pressure every day.
 
 ---
 
 ## Why This Matters
 
-Every minute in an emergency department, nurses make triage decisions that determine who gets seen first. Get it wrong — a patient deteriorates in the waiting room. Current AI systems cannot learn this skill because no open training environment existed. MedTriageEnv fills that gap.
+Every minute in an emergency department, nurses make triage decisions that determine who gets seen first. Get it wrong — a patient deteriorates in the waiting room. Current AI systems cannot easily learn this skill — open, reproducible training environments for clinical triage are extremely rare. MedTriageEnv fills that gap.
 
 - Built on **ESI v4** — the actual triage algorithm used in US hospitals
 - **12 seeded clinical scenarios** covering sepsis, chest pain, trauma, stroke, and more
@@ -165,9 +165,9 @@ medtriage_env/
 
 Unlike static medical QA benchmarks, MedTriageEnv is dynamic — patient states change, conditions deteriorate, and the agent must reason across multiple steps under time pressure. This mirrors real clinical decision-making in ways no existing benchmark does.
 
-The gap this fills: hospitals need AI that can assist triage decisions at scale. Training such agents requires a realistic, reproducible environment with medically valid ground truth. No such open-source environment existed before this.
+The gap this fills: hospitals need AI that can assist triage decisions at scale. Training such agents requires a realistic, reproducible environment with medically valid ground truth. Very few open-source environments exist for this domain, and none with this level of medical grounding.
 
 ---
 
 Built solo for the Meta x HuggingFace OpenEnv Hackathon, April 2026.
-First open-source emergency department triage RL environment.
+Open-source emergency department triage RL environment built on real medical algorithms.
