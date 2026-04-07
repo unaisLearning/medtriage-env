@@ -1,0 +1,110 @@
+name: MedTriageEnv
+version: "1.0.0"
+description: >
+  Emergency Department Triage Simulator. An AI agent acts as an ED triage nurse,
+  assessing patient acuity, prioritising care, and responding to deteriorating conditions.
+  3 tasks of increasing difficulty — from single-patient ESI classification to
+  multi-patient prioritisation to dynamic deterioration management.
+
+author: MedTriageEnv Team
+tags:
+  - openenv
+  - healthcare
+  - triage
+  - clinical
+  - real-world
+  - rl-environment
+  - agent-evaluation
+
+license: MIT
+
+# OpenEnv interface compliance
+interface:
+  reset: true
+  step: true
+  state: true
+  spec_version: "0.1"
+
+# Tasks
+tasks:
+  - id: task1_single_patient
+    difficulty: easy
+    max_steps: 5
+    score_range: [0.0, 1.0]
+    description: >
+      Assign the correct Emergency Severity Index (ESI 1–5) to a single patient.
+      Partial credit for near-correct assignments. Bonus for appropriate diagnostics.
+
+  - id: task2_multi_patient
+    difficulty: medium
+    max_steps: 8
+    score_range: [0.0, 1.0]
+    description: >
+      Rank 5 simultaneous patients from most to least urgent.
+      Graded using Kendall tau-b rank correlation. Bonus for correctly identifying
+      critical (ESI 1) patients.
+
+  - id: task3_dynamic_deterioration
+    difficulty: hard
+    max_steps: 10
+    score_range: [0.0, 1.0]
+    description: >
+      Manage a patient whose vitals deteriorate over 10 steps.
+      Weighted composite score: ESI accuracy (30%), escalation timeliness (35%),
+      diagnostic coverage (20%), step efficiency (15%).
+
+# Action space
+action_space:
+  type: discrete
+  size: 18
+  description: >
+    18 discrete actions including ESI assignment (1–5),
+    diagnostic orders (ECG, labs, X-ray, CT),
+    escalation (physician, trauma, ICU),
+    supportive care (O2, IV, pain), and flow control (discharge, reassess, noop).
+
+# Observation space
+observation_space:
+  type: structured
+  format: json
+  fields:
+    - name: task_id
+      type: string
+    - name: step
+      type: integer
+    - name: patients
+      type: array
+      description: List of PatientRecord objects with vitals, PMH, chief complaint
+    - name: clinical_summary
+      type: string
+      description: Plain-English ED nursing summary
+    - name: legal_actions
+      type: array
+      description: Valid action integers at current step
+    - name: step_reward
+      type: float
+      description: Reward earned this step (partial progress signal)
+    - name: time_pressure_flag
+      type: boolean
+    - name: resource_constraints
+      type: object
+
+# Baseline scores (LLM agent, gpt-4o-mini equivalent)
+baseline_scores:
+  task1_single_patient: 0.65
+  task2_multi_patient: 0.45
+  task3_dynamic_deterioration: 0.30
+
+# Infrastructure
+server:
+  framework: fastapi
+  port: 8000
+  health_endpoint: /health
+
+docker:
+  image: medtriage-env
+  base: python:3.11-slim
+
+huggingface:
+  space_sdk: docker
+  hardware: cpu-basic

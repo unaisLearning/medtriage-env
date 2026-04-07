@@ -1,0 +1,432 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
+  "seeds": [
+    42,
+    7,
+    99
+  ],
+  "task_scores": {
+    "task1_single_patient": 0.35,
+    "task2_multi_patient": 0.5,
+    "task3_dynamic_deterioration": 0.24
+  },
+  "overall_mean": 0.3633,
+  "runtime_seconds": 17.9,
+  "episodes": [
+    {
+      "task_id": "task1_single_patient",
+      "seed": 42,
+      "steps": [
+        {
+          "step": 1,
+          "action": 18,
+          "action_name": "NOOP",
+          "reasoning": "Patient is stable and only requires a prescription refill for oral contraceptive.",
+          "reward": -0.05,
+          "done": false
+        },
+        {
+          "step": 2,
+          "action": 18,
+          "action_name": "NOOP",
+          "reasoning": "Patient is stable and does not require immediate medical intervention, can be managed with a prescri",
+          "reward": -0.05,
+          "done": false
+        },
+        {
+          "step": 3,
+          "action": 18,
+          "action_name": "NOOP",
+          "reasoning": "Patient is stable and only requires a prescription refill, no immediate medical intervention is requ",
+          "reward": -0.05,
+          "done": false
+        },
+        {
+          "step": 4,
+          "action": 18,
+          "action_name": "NOOP",
+          "reasoning": "Patient is stable and requires only a prescription refill, no further action is needed.",
+          "reward": -0.05,
+          "done": false
+        },
+        {
+          "step": 5,
+          "action": 18,
+          "action_name": "NOOP",
+          "reasoning": "Patient is stable and only requires a prescription refill, no further action is needed.",
+          "reward": -0.05,
+          "done": true
+        }
+      ],
+      "final_score": 0.0
+    },
+    {
+      "task_id": "task1_single_patient",
+      "seed": 7,
+      "steps": [
+        {
+          "step": 1,
+          "action": 3,
+          "action_name": "ASSIGN_ESI_3",
+          "reasoning": "Patient presents with severe abdominal pain, tachycardia, and fever, indicating a potential surgical",
+          "reward": 0.5,
+          "done": true
+        }
+      ],
+      "final_score": 1.0
+    },
+    {
+      "task_id": "task1_single_patient",
+      "seed": 99,
+      "steps": [
+        {
+          "step": 1,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to assess for potential infection and exacerbation of COPD",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 2,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, given his history o",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 3,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to investigate the cause of the patient's fever and elevated WBC count, given his history",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 4,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, and to assess for p",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 5,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, and to monitor for ",
+          "reward": 0.1,
+          "done": true
+        }
+      ],
+      "final_score": 0.05
+    },
+    {
+      "task_id": "task2_multi_patient",
+      "seed": 42,
+      "steps": [
+        {
+          "step": 1,
+          "action": 1,
+          "action_name": "ASSIGN_ESI_1",
+          "reasoning": "Assign ESI 1 to P003 due to severe chest pain and diaphoresis",
+          "reward": 0.8,
+          "done": true
+        }
+      ],
+      "final_score": 0.5
+    },
+    {
+      "task_id": "task2_multi_patient",
+      "seed": 7,
+      "steps": [
+        {
+          "step": 1,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "Reassess patients to determine their ESI level based on their clinical presentation",
+          "reward": 0.8,
+          "done": true
+        }
+      ],
+      "final_score": 0.5
+    },
+    {
+      "task_id": "task2_multi_patient",
+      "seed": 99,
+      "steps": [
+        {
+          "step": 1,
+          "action": 1,
+          "action_name": "ASSIGN_ESI_1",
+          "reasoning": "P005 requires immediate life-saving intervention due to unresponsiveness and low vital signs.",
+          "reward": 0.8,
+          "done": true
+        }
+      ],
+      "final_score": 0.5
+    },
+    {
+      "task_id": "task3_dynamic_deterioration",
+      "seed": 42,
+      "steps": [
+        {
+          "step": 1,
+          "action": 7,
+          "action_name": "ORDER_LABS",
+          "reasoning": "Order labs to assess for potential infection and exacerbation of COPD",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 2,
+          "action": 10,
+          "action_name": "CALL_PHYSICIAN",
+          "reasoning": "Call physician for immediate assessment and management of potential respiratory failure in a patient",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 3,
+          "action": 10,
+          "action_name": "CALL_PHYSICIAN",
+          "reasoning": "fallback parse: {\n  \"action\": 10,\n  \"reasoning\": \"Call physician for immediate assessment and ma",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 4,
+          "action": 11,
+          "action_name": "ACTIVATE_TRAUMA",
+          "reasoning": "Activate trauma team due to patient's high respiratory rate and low oxygen saturation indicating pot",
+          "reward": 0.1,
+          "done": false
+        },
+        {
+          "step": 5,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 6,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 7,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 8,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 9,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 10,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": true
+        }
+      ],
+      "final_score": 0.6299999999999999
+    },
+    {
+      "task_id": "task3_dynamic_deterioration",
+      "seed": 7,
+      "steps": [
+        {
+          "step": 1,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": -0.2,
+          "done": false
+        },
+        {
+          "step": 2,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": -0.2,
+          "done": false
+        },
+        {
+          "step": 3,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 4,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 5,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 6,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 7,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 8,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 9,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 10,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": true
+        }
+      ],
+      "final_score": 0.045000000000000005
+    },
+    {
+      "task_id": "task3_dynamic_deterioration",
+      "seed": 99,
+      "steps": [
+        {
+          "step": 1,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": -0.2,
+          "done": false
+        },
+        {
+          "step": 2,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": -0.2,
+          "done": false
+        },
+        {
+          "step": 3,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 4,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 5,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 6,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 7,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 8,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 9,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": false
+        },
+        {
+          "step": 10,
+          "action": 17,
+          "action_name": "REASSESS",
+          "reasoning": "api error",
+          "reward": 0.0,
+          "done": true
+        }
+      ],
+      "final_score": 0.045000000000000005
+    }
+  ]
+}
