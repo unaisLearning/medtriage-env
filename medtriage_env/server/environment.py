@@ -63,37 +63,83 @@ def _legal_ints(actions) -> List[int]:
 # Clinical summary generator
 # ---------------------------------------------------------------------------
 
+ACTION_NAMES = {
+    1: "ASSIGN_ESI_1 (immediate - life threatening)",
+    2: "ASSIGN_ESI_2 (emergent - high risk)",
+    3: "ASSIGN_ESI_3 (urgent - stable)",
+    4: "ASSIGN_ESI_4 (less urgent)",
+    5: "ASSIGN_ESI_5 (non-urgent)",
+    6: "ORDER_ECG",
+    7: "ORDER_LABS",
+    8: "ORDER_XRAY",
+    9: "ORDER_CT",
+    10: "CALL_PHYSICIAN (escalate care)",
+    11: "ACTIVATE_TRAUMA",
+    12: "TRANSFER_ICU",
+    13: "ADMINISTER_O2",
+    14: "IV_ACCESS",
+    15: "PAIN_MANAGEMENT",
+    16: "DISCHARGE",
+    17: "REASSESS (observe next step)",
+    18: "NOOP (do nothing - penalized)",
+}
+
+VITAL_WARNINGS = [
+    (lambda v: v.spo2 < 90, "CRITICAL: SpO2 < 90% — hypoxia, give O2 immediately"),
+    (lambda v: v.spo2 < 95, "WARNING: SpO2 < 95% — consider oxygen"),
+    (lambda v: v.heart_rate > 130, "CRITICAL: Tachycardia HR > 130"),
+    (lambda v: v.heart_rate > 100, "WARNING: Tachycardia HR > 100"),
+    (lambda v: v.systolic_bp < 90, "CRITICAL: Hypotension SBP < 90"),
+    (lambda v: v.systolic_bp < 100, "WARNING: Low BP SBP < 100"),
+    (lambda v: v.respiratory_rate > 25, "CRITICAL: Tachypnea RR > 25"),
+    (lambda v: v.gcs < 12, "CRITICAL: Altered consciousness GCS < 12"),
+    (lambda v: v.temperature > 39.5, "WARNING: High fever > 39.5C"),
+]
+
 def _build_clinical_summary(patients: List[PatientRecord], task_id: str, step: int) -> str:
     if task_id == "task2_multi_patient":
-        lines = [f"[Step {step}] ED census: {len(patients)} patients waiting.\n"]
+        lines = [f"[Step {step}] ED census: {len(patients)} patients waiting."]
+        lines.append("TASK: Rank patients from most urgent (first) to least urgent (last).")
+        lines.append("")
         for p in patients:
             v = p.vitals
+            warnings = [w for chk, w in VITAL_WARNINGS if chk(v)]
+            warn_str = " | " + "; ".join(warnings) if warnings else ""
             lines.append(
                 f"  {p.patient_id} — {p.age}{p.sex} | {p.chief_complaint} | "
                 f"HR {v.heart_rate} BP {v.systolic_bp}/{v.diastolic_bp} "
-                f"SpO2 {v.spo2}% RR {v.respiratory_rate} Temp {v.temperature}°C "
+                f"SpO2 {v.spo2}% RR {v.respiratory_rate} Temp {v.temperature}C "
                 f"GCS {v.gcs} Pain {v.pain_score}/10 | "
-                f"Waiting {p.time_in_ed_minutes} min | Arrival: {p.arrival_mode}"
+                f"Waiting {p.time_in_ed_minutes} min{warn_str}"
             )
         return "\n".join(lines)
     else:
         p = patients[0]
         v = p.vitals
-        deteriorating_flag = " ⚠ DETERIORATING" if p.deteriorating else ""
+        deteriorating_flag = " *** PATIENT DETERIORATING - ESCALATE NOW ***" if p.deteriorating else ""
         test_str = ""
         if p.test_results:
             results = "; ".join(f"{k}: {v_}" for k, v_ in p.test_results.items())
-            test_str = f"\n  Results: {results}"
+            test_str = f"\n  Test results: {results}"
+        warnings = [w for chk, w in VITAL_WARNINGS if chk(v)]
+        warn_str = ""
+        if warnings:
+            warn_str = "\n  ALERTS: " + " | ".join(warnings)
+        task_hint = ""
+        if task_id == "task1_single_patient":
+            task_hint = "\n  TASK: Assign the correct ESI level (1=most urgent, 5=least urgent). Order diagnostics if needed."
+        elif task_id == "task3_dynamic_deterioration":
+            task_hint = "\n  TASK: Monitor and manage this patient. Escalate if deteriorating. You have limited steps."
         return (
             f"[Step {step}]{deteriorating_flag}\n"
             f"  {p.age}{p.sex} via {p.arrival_mode} | c/o: {p.chief_complaint}\n"
             f"  HR {v.heart_rate} | BP {v.systolic_bp}/{v.diastolic_bp} | "
             f"SpO2 {v.spo2}% | RR {v.respiratory_rate} | "
-            f"Temp {v.temperature}°C | GCS {v.gcs} | Pain {v.pain_score}/10\n"
+            f"Temp {v.temperature}C | GCS {v.gcs} | Pain {v.pain_score}/10\n"
             f"  PMH: {', '.join(p.pmh) if p.pmh else 'None'} | "
             f"Meds: {', '.join(p.medications) if p.medications else 'None'} | "
             f"Allergies: {', '.join(p.allergies) if p.allergies else 'NKDA'}"
-            f"{test_str}"
+            f"{test_str}{warn_str}{task_hint}"
         )
 
 
@@ -572,6 +618,22 @@ class MedTriageEnvironment:
 
         summary = _build_clinical_summary(self._patients, task_id, step)
 
+        steps_remaining = max_steps - step
+        legal_action_names = {a: ACTION_NAMES.get(a, str(a)) for a in legal}
+
+        enhanced_info = {
+            "task_description": self.TASK_DESCRIPTIONS[task_id],
+            "steps_remaining": steps_remaining,
+            "legal_action_names": legal_action_names,
+            "scoring_hint": (
+                "Task 1: Assign ESI level + order diagnostics. ESI 1=life-threatening, 5=non-urgent."
+                if task_id == "task1_single_patient" else
+                "Task 2: Submit patient_rankings list with patient IDs ordered most-to-least urgent."
+                if task_id == "task2_multi_patient" else
+                "Task 3: Monitor vitals each step. If deteriorating, escalate immediately (CALL_PHYSICIAN/TRANSFER_ICU)."
+            ),
+        }
+
         return MedTriageObservation(
             task_id=task_id,
             step=step,
@@ -585,5 +647,5 @@ class MedTriageEnvironment:
             clinical_summary=summary,
             time_pressure_flag=time_pressure,
             resource_constraints=resources,
-            info={"task_description": self.TASK_DESCRIPTIONS[task_id]},
+            info=enhanced_info,
         )
