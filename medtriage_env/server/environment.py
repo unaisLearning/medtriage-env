@@ -140,6 +140,7 @@ class MedTriageEnvironment:
         self._ground_truth_specs: List[ScenarioSpec] = []
         self._deterioration_schedule: List[Dict] = []
         self._actions_taken: List[int] = []
+        self._last_agent_ranking: List[str] = []
         self._escalation_step: Optional[int] = None
         self._deterioration_start_step: int = 0
         self._cumulative_reward: float = 0.0
@@ -161,6 +162,7 @@ class MedTriageEnvironment:
         episode_id = str(uuid.uuid4())
 
         self._actions_taken = []
+        self._last_agent_ranking = []
         self._escalation_step = None
         self._deterioration_start_step = 2  # Task 3: deterioration begins at step 2
         self._cumulative_reward = 0.0
@@ -321,7 +323,8 @@ class MedTriageEnvironment:
         action_val = int(action.action.value) if hasattr(action.action, 'value') else int(action.action)
 
         if action.patient_rankings and len(action.patient_rankings) == len(self._patients):
-            # Agent submitted a complete ranking → grade immediately
+            # Agent submitted a complete ranking → store and grade immediately
+            self._last_agent_ranking = action.patient_rankings
             gt_specs = self._ground_truth_specs
             gt_by_esi = sorted(gt_specs, key=lambda s: s.ground_truth_esi)
             gt_ranking = [s.patient.patient_id for s in gt_by_esi]
@@ -497,9 +500,15 @@ class MedTriageEnvironment:
             gt_by_esi = sorted(gt_specs, key=lambda s: s.ground_truth_esi)
             gt_ranking = [s.patient.patient_id for s in gt_by_esi]
             esi_map = {s.patient.patient_id: s.ground_truth_esi for s in gt_specs}
-            # Use last patient_rankings from history (approximated from state)
-            # This is set during _step_task2; use score already computed
-            score, breakdown = 0.5, {"note": "Score computed during step"}
+            # Use last submitted ranking from agent
+            if self._last_agent_ranking:
+                score, breakdown = self._g2.grade(
+                    agent_rankings=self._last_agent_ranking,
+                    ground_truth_rankings=gt_ranking,
+                    esi_map=esi_map,
+                )
+            else:
+                score, breakdown = 0.0, {"note": "No ranking submitted"}
 
         elif self._task_id == "task3_dynamic_deterioration":
             gt_esi = self._ground_truth_specs[0].ground_truth_esi
