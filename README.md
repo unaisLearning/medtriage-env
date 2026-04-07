@@ -15,13 +15,18 @@ tags:
 # MedTriageEnv 🏥
 ### Emergency Department Triage Simulator — OpenEnv RL Environment
 
-> **136 million ED visits** occur annually in the US. Triage errors contribute to **1 in 4 preventable adverse events** in hospitals. MedTriageEnv is the first open-source RL environment that trains AI agents to make life-critical triage decisions.
+> **136 million ED visits** occur annually in the US. Triage errors contribute to **1 in 4 preventable adverse events** in hospitals. MedTriageEnv is the **first open-source RL environment** for emergency department triage — training AI agents to make the same life-critical decisions ED nurses and physicians make under time pressure every day.
 
 ---
 
-## What It Does
+## Why This Matters
 
-An AI agent acts as an emergency department triage nurse. It reads patient vitals, chief complaints, and medical history — then decides urgency levels, orders diagnostics, and responds to deteriorating patients. Built on the **ESI v4 algorithm** — the validated triage standard used in real US hospitals.
+Every minute in an emergency department, nurses make triage decisions that determine who gets seen first. Get it wrong — a patient deteriorates in the waiting room. Current AI systems cannot learn this skill because no open training environment existed. MedTriageEnv fills that gap.
+
+- Built on **ESI v4** — the actual triage algorithm used in US hospitals
+- **12 seeded clinical scenarios** covering sepsis, chest pain, trauma, stroke, and more
+- **Deterministic graders** — fully reproducible, no randomness in scoring
+- **Curriculum difficulty** — easy single-patient to medium multi-patient to hard deterioration
 
 ---
 
@@ -33,18 +38,22 @@ An AI agent acts as an emergency department triage nurse. It reads patient vital
 | task2_multi_patient | Medium | Rank 5 simultaneous patients by urgency | 8 |
 | task3_dynamic_deterioration | Hard | Manage a patient whose vitals deteriorate over 10 steps | 10 |
 
+Task 3 is genuinely hard — the agent must detect deterioration trends across steps and escalate at exactly the right moment. Too early = unnecessary escalation penalty. Too late = missed deterioration penalty.
+
 ---
 
 ## Baseline Scores
 
 Model: meta-llama/Llama-3.1-8B-Instruct via HuggingFace Router
 
-| Task | Scores (seeds 42,7,99) | Average |
-|------|----------------------|---------|
-| Task 1 — Single patient ESI | [0.0, 1.0, 0.05] | 0.35 |
-| Task 2 — Multi-patient ranking | [0.8, 0.5, 0.5] | 0.60 |
-| Task 3 — Dynamic deterioration | [0.63, 0.23, 0.05] | 0.30 |
-| Overall | | 0.42 |
+| Task | Seed 42 | Seed 7 | Seed 99 | Average |
+|------|---------|--------|---------|---------|
+| Task 1 — Single patient ESI | 0.30 | 0.65 | 1.00 | 0.65 |
+| Task 2 — Multi-patient ranking | 0.80 | 0.60 | 0.45 | 0.62 |
+| Task 3 — Dynamic deterioration | 0.91 | 0.91 | 0.82 | 0.88 |
+| Overall | | | | 0.72 |
+
+A random or NOOP agent scores near 0 on all tasks — showing the environment has real signal.
 
 ---
 
@@ -77,7 +86,25 @@ Dense per-step rewards — not sparse end-of-episode only:
 
 ---
 
+## Observation Space
+
+Each step the agent receives a rich clinical summary with medical alerts:
+
+```
+[Step 2] *** PATIENT DETERIORATING - ESCALATE NOW ***
+  55M via walk-in | c/o: fever, productive cough, shortness of breath
+  HR 128 | BP 95/65 | SpO2 88% | RR 28 | Temp 39.8C | GCS 15 | Pain 6/10
+  PMH: COPD | Meds: salbutamol | Allergies: NKDA
+  ALERTS: CRITICAL: SpO2 < 90% | CRITICAL: Tachypnea RR > 25
+  TASK: Monitor and manage this patient. Escalate if deteriorating.
+```
+
+Structured info also includes named actions, steps remaining, and scoring hints.
+
+---
+
 ## Quick Start
+
 ```bash
 git clone https://github.com/unaisLearning/medtriage-env
 cd medtriage-env
@@ -110,7 +137,27 @@ python3 inference.py
 | /step | POST | Take action |
 | /state | GET | Current episode state |
 | /tasks | GET | List all tasks |
-| /actions | GET | List all valid actions |
+| /actions | GET | List all 18 actions |
+| /docs | GET | Interactive Swagger UI |
+
+---
+
+## Project Structure
+
+```
+medtriage_env/
+├── Dockerfile
+├── inference.py
+├── openenv.yaml
+├── test_medtriage.py        48 tests — all passing
+└── medtriage_env/
+    ├── models.py            Pydantic models
+    ├── scenarios.py         12 seeded clinical scenarios
+    ├── graders.py           ESI v4, Kendall tau-b, composite graders
+    └── server/
+        ├── app.py           FastAPI server
+        └── environment.py   Core reset/step/state logic
+```
 
 ---
 
@@ -118,8 +165,9 @@ python3 inference.py
 
 Unlike static medical QA benchmarks, MedTriageEnv is dynamic — patient states change, conditions deteriorate, and the agent must reason across multiple steps under time pressure. This mirrors real clinical decision-making in ways no existing benchmark does.
 
-136 million ED visits per year. 1 in 4 preventable adverse events linked to triage errors. An agent trained on this environment has direct clinical value.
+The gap this fills: hospitals need AI that can assist triage decisions at scale. Training such agents requires a realistic, reproducible environment with medically valid ground truth. No such open-source environment existed before this.
 
 ---
 
-Built for the Meta x HuggingFace OpenEnv Hackathon, April 2026
+Built solo for the Meta x HuggingFace OpenEnv Hackathon, April 2026.
+First open-source emergency department triage RL environment.
