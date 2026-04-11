@@ -29,6 +29,22 @@ def _strict_clamp(score: float) -> float:
     return max(STRICT_SCORE_MIN, min(STRICT_SCORE_MAX, float(score)))
 
 
+def _stringify_breakdown_values(data):
+    """
+    Keep breakdown metadata human-readable without exposing extra numeric
+    values that a validator could mistake for task scores.
+    """
+    if isinstance(data, dict):
+        return {k: _stringify_breakdown_values(v) for k, v in data.items()}
+    if isinstance(data, list):
+        return [_stringify_breakdown_values(v) for v in data]
+    if isinstance(data, bool):
+        return data
+    if isinstance(data, (int, float)):
+        return f"{data}"
+    return data
+
+
 # Task 1 Grader — Single patient ESI classification
 # ---------------------------------------------------------------------------
 
@@ -117,7 +133,9 @@ class Task1Grader:
         final = _strict_unit_interval(esi_score + bonus + noop_penalty)
         breakdown["final_score"] = round(final, 6)
 
-        return final, breakdown
+        sanitized = _stringify_breakdown_values(breakdown)
+        sanitized["final_score"] = breakdown["final_score"]
+        return final, sanitized
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +165,10 @@ class Task2Grader:
 
         if not agent_rankings or not ground_truth_rankings:
             score = _strict_unit_interval(0.0)
-            return score, {"error": "Empty rankings provided", "final_score": round(score, 6)}
+            breakdown = {"error": "Empty rankings provided", "final_score": round(score, 6)}
+            sanitized = _stringify_breakdown_values(breakdown)
+            sanitized["final_score"] = breakdown["final_score"]
+            return score, sanitized
 
         patient_ids = [pid for pid in ground_truth_rankings if pid in esi_map]
         agent_rank = {pid: i for i, pid in enumerate(agent_rankings)}
@@ -200,7 +221,9 @@ class Task2Grader:
         final = _strict_unit_interval(normalized_tau + bonus)
         breakdown["final_score"] = round(final, 6)
 
-        return final, breakdown
+        sanitized = _stringify_breakdown_values(breakdown)
+        sanitized["final_score"] = breakdown["final_score"]
+        return final, sanitized
 
 
 # ---------------------------------------------------------------------------
@@ -346,4 +369,6 @@ class Task3Grader:
             "efficiency": self.EFFICIENCY_WEIGHT,
         }
 
-        return final, breakdown
+        sanitized = _stringify_breakdown_values(breakdown)
+        sanitized["final_score"] = breakdown["final_score"]
+        return final, sanitized
