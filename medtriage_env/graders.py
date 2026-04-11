@@ -29,20 +29,11 @@ def _strict_clamp(score: float) -> float:
     return max(STRICT_SCORE_MIN, min(STRICT_SCORE_MAX, float(score)))
 
 
-def _stringify_breakdown_values(data):
-    """
-    Keep breakdown metadata human-readable without exposing extra numeric
-    values that a validator could mistake for task scores.
-    """
-    if isinstance(data, dict):
-        return {k: _stringify_breakdown_values(v) for k, v in data.items()}
-    if isinstance(data, list):
-        return [_stringify_breakdown_values(v) for v in data]
-    if isinstance(data, bool):
-        return data
-    if isinstance(data, (int, float)):
-        return f"{data}"
-    return data
+def _final_only(score: float, note: Optional[str] = None) -> Dict:
+    result = {"final_score": round(score, 6)}
+    if note:
+        result["note"] = note
+    return result
 
 
 # Task 1 Grader — Single patient ESI classification
@@ -84,7 +75,6 @@ class Task1Grader:
         # --- Primary ESI score ---
         if assigned_esi is None:
             esi_score = 0.0
-            breakdown["esi_component"] = _strict_unit_interval(0.0)
             breakdown["esi_note"] = "No ESI assigned"
         else:
             delta = abs(assigned_esi - ground_truth_esi)
@@ -96,7 +86,6 @@ class Task1Grader:
                 esi_score = self.OFF_BY_2
             else:
                 esi_score = self.OFF_BY_GE_3
-            breakdown["esi_component"] = _strict_unit_interval(esi_score)
             breakdown["esi_assigned"] = assigned_esi
             breakdown["esi_ground_truth"] = ground_truth_esi
             breakdown["esi_delta"] = delta
@@ -131,11 +120,8 @@ class Task1Grader:
 
         # Avoid exact 0 or 1 here; the validator rejects endpoint scores.
         final = _strict_unit_interval(esi_score + bonus + noop_penalty)
-        breakdown["final_score"] = round(final, 6)
-
-        sanitized = _stringify_breakdown_values(breakdown)
-        sanitized["final_score"] = breakdown["final_score"]
-        return final, sanitized
+        note = breakdown.get("esi_note") or breakdown.get("diagnostic_bonus")
+        return final, _final_only(final, note)
 
 
 # ---------------------------------------------------------------------------
@@ -165,10 +151,7 @@ class Task2Grader:
 
         if not agent_rankings or not ground_truth_rankings:
             score = _strict_unit_interval(0.0)
-            breakdown = {"error": "Empty rankings provided", "final_score": round(score, 6)}
-            sanitized = _stringify_breakdown_values(breakdown)
-            sanitized["final_score"] = breakdown["final_score"]
-            return score, sanitized
+            return score, _final_only(score, "Empty rankings provided")
 
         patient_ids = [pid for pid in ground_truth_rankings if pid in esi_map]
         agent_rank = {pid: i for i, pid in enumerate(agent_rankings)}
@@ -219,11 +202,8 @@ class Task2Grader:
                 breakdown["critical_penalty"] = "Critical patient not in top 2 (-0.15)"
 
         final = _strict_unit_interval(normalized_tau + bonus)
-        breakdown["final_score"] = round(final, 6)
-
-        sanitized = _stringify_breakdown_values(breakdown)
-        sanitized["final_score"] = breakdown["final_score"]
-        return final, sanitized
+        note = breakdown.get("critical_bonus") or breakdown.get("critical_penalty")
+        return final, _final_only(final, note)
 
 
 # ---------------------------------------------------------------------------
@@ -361,14 +341,5 @@ class Task3Grader:
             + efficiency_score * self.EFFICIENCY_WEIGHT
         )
         final = _strict_unit_interval(final)
-        breakdown["final_score"] = round(final, 6)
-        breakdown["weights"] = {
-            "esi": self.ESI_WEIGHT,
-            "escalation": self.ESCALATION_WEIGHT,
-            "diagnostic": self.DIAGNOSTIC_WEIGHT,
-            "efficiency": self.EFFICIENCY_WEIGHT,
-        }
-
-        sanitized = _stringify_breakdown_values(breakdown)
-        sanitized["final_score"] = breakdown["final_score"]
-        return final, sanitized
+        note = breakdown.get("escalation_note")
+        return final, _final_only(final, note)

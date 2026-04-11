@@ -174,12 +174,12 @@ class TestTask2Grader:
 
     def test_critical_patient_ranked_first_bonus(self):
         score_first, bd = self.g.grade(self.gt, self.gt, self.esi_map)
-        assert "critical_bonus" in bd
+        assert "Critical patient ranked #1" in bd.get("note", "")
 
     def test_critical_patient_not_in_top2_penalty(self):
         bad = ["P003", "P004", "P002", "P005", "P001"]  # P001 (ESI 1) last
         score, bd = self.g.grade(bad, self.gt, self.esi_map)
-        assert "critical_penalty" in bd
+        assert "Critical patient not in top 2" in bd.get("note", "")
 
     def test_score_always_in_range(self):
         import random
