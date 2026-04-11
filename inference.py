@@ -49,6 +49,11 @@ SEEDS            = [42, 7, 99]   # 3 seeds per task → 9 episodes total
 TEMPERATURE      = 0.1            # Low temp for reproducibility
 MAX_TOKENS       = 512
 FALLBACK_ACTION  = TriageAction.REASSESS.value
+STRICT_SCORE_EPSILON = 1e-6
+
+
+def _strict_unit_interval(value: float) -> float:
+    return min(1.0 - STRICT_SCORE_EPSILON, max(STRICT_SCORE_EPSILON, value))
 
 # ---------------------------------------------------------------------------
 # System prompt
@@ -252,25 +257,35 @@ def run_episode(
         if result.done:
             final_score = result.info.get("final_score")
             if final_score is not None:
-                episode_info["final_score"] = final_score
+                episode_info["final_score"] = _strict_unit_interval(float(final_score))
                 if verbose:
-                    print(f"  Final score: {final_score:.4f}")
-            print(f'[END] {{"task_id": "{task_id}", "seed": {seed}, "score": {round(float(episode_info["final_score"] or 0.0), 4)}}}', flush=True)
+                    print(f"  Final score: {float(episode_info['final_score']):.6f}")
+            end_payload = {
+                "task_id": task_id,
+                "seed": seed,
+                "score": _strict_unit_interval(float(episode_info["final_score"] or 0.0)),
+            }
+            print(f"[END] {json.dumps(end_payload)}", flush=True)
             break
 
     # Retrieve final score from state if not in last step info
     if episode_info["final_score"] is None:
         try:
             state = env.state()
-            episode_info["final_score"] = state.task_score or 0.0
+            episode_info["final_score"] = _strict_unit_interval(float(state.task_score or 0.0))
         except Exception:
-            episode_info["final_score"] = max(0.0, min(1.0, total_reward / max_steps))
+            episode_info["final_score"] = _strict_unit_interval(total_reward / max_steps)
         # Print [END] for max_steps case where done was never True
-        final_score_val = round(float(episode_info["final_score"] or 0.0), 4)
-        print("[END] {" + '{"task_id": "' + task_id + '", "seed": ' + str(seed) + ', "score": ' + str(final_score_val) + "}", flush=True)
+        final_score_val = _strict_unit_interval(float(episode_info["final_score"] or 0.0))
+        end_payload = {
+            "task_id": task_id,
+            "seed": seed,
+            "score": final_score_val,
+        }
+        print(f"[END] {json.dumps(end_payload)}", flush=True)
 
     env.close()
-    return float(episode_info["final_score"] or 0.0), episode_info
+    return _strict_unit_interval(float(episode_info["final_score"] or 0.0)), episode_info
 
 
 # ---------------------------------------------------------------------------
@@ -315,8 +330,8 @@ def main() -> None:
                 )
             except Exception as exc:
                 print(f"  [ERROR] Episode failed (task={task_id}, seed={seed}): {exc}")
-                score = 0.0
-                episode_info = {"task_id": task_id, "seed": seed, "error": str(exc), "final_score": 0.0}
+                score = _strict_unit_interval(0.0)
+                episode_info = {"task_id": task_id, "seed": seed, "error": str(exc), "final_score": score}
 
             all_results[task_id].append(score)
             all_episodes.append(episode_info)
@@ -339,11 +354,11 @@ def main() -> None:
         avg = sum(scores) / len(scores) if scores else 0.0
         scores_summary[task_id] = avg
         bar = "█" * int(avg * 30)
-        print(f"  {task_labels[task_id]} {avg:.4f}  [{bar:<30}]")
-        print(f"    seeds={SEEDS}, scores={[round(s,4) for s in scores]}")
+        print(f"  {task_labels[task_id]} {avg:.6f}  [{bar:<30}]")
+        print(f"    seeds={SEEDS}, scores={[round(_strict_unit_interval(s), 6) for s in scores]}")
 
     overall = sum(scores_summary.values()) / len(scores_summary)
-    print(f"\n  Overall mean: {overall:.4f}")
+    print(f"\n  Overall mean: {overall:.6f}")
     print(f"  Runtime:      {elapsed:.1f}s")
     print("=" * 65)
 
@@ -352,8 +367,8 @@ def main() -> None:
     output = {
         "model": MODEL_NAME,
         "seeds": SEEDS,
-        "task_scores": {k: round(v, 4) for k, v in scores_summary.items()},
-        "overall_mean": round(overall, 4),
+        "task_scores": {k: round(_strict_unit_interval(v), 6) for k, v in scores_summary.items()},
+        "overall_mean": round(_strict_unit_interval(overall), 6),
         "runtime_seconds": round(elapsed, 1),
         "episodes": all_episodes,
     }
