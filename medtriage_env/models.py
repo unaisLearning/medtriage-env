@@ -155,10 +155,11 @@ class VitalSigns(BaseModel):
             "15 = fully alert. ≤8 = severe impairment, intubation threshold."
         ),
     )
-    pain_score: int = Field(
+    pain_level: int = Field(
         ...,
+        alias="pain_score",
         ge=0, le=10,
-        description="Numeric pain score (0 = none, 10 = worst imaginable).",
+        description="Pain level on a 0-10 scale (0 = none, 10 = worst imaginable).",
     )
 
 

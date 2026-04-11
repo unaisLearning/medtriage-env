@@ -109,7 +109,7 @@ def _build_clinical_summary(patients: List[PatientRecord], task_id: str, step: i
                 f"  {p.patient_id} — {p.age}{p.sex} | {p.chief_complaint} | "
                 f"HR {v.heart_rate} BP {v.systolic_bp}/{v.diastolic_bp} "
                 f"SpO2 {v.spo2}% RR {v.respiratory_rate} Temp {v.temperature}C "
-                f"GCS {v.gcs} Pain {v.pain_score}/10 | "
+                f"GCS {v.gcs} Pain {v.pain_level}/10 | "
                 f"Waiting {p.time_in_ed_minutes} min{warn_str}"
             )
         return "\n".join(lines)
@@ -135,7 +135,7 @@ def _build_clinical_summary(patients: List[PatientRecord], task_id: str, step: i
             f"  {p.age}{p.sex} via {p.arrival_mode} | c/o: {p.chief_complaint}\n"
             f"  HR {v.heart_rate} | BP {v.systolic_bp}/{v.diastolic_bp} | "
             f"SpO2 {v.spo2}% | RR {v.respiratory_rate} | "
-            f"Temp {v.temperature}C | GCS {v.gcs} | Pain {v.pain_score}/10\n"
+            f"Temp {v.temperature}C | GCS {v.gcs} | Pain {v.pain_level}/10\n"
             f"  PMH: {', '.join(p.pmh) if p.pmh else 'None'} | "
             f"Meds: {', '.join(p.medications) if p.medications else 'None'} | "
             f"Allergies: {', '.join(p.allergies) if p.allergies else 'NKDA'}"

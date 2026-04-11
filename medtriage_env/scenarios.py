@@ -72,7 +72,7 @@ def compute_ground_truth_esi(patient: PatientRecord) -> int:
     is_high_risk = any(kw in complaint_lower for kw in high_risk_complaints)
 
     confused = v.gcs < 15
-    severe_distress = v.pain_score >= 8
+    severe_distress = v.pain_level >= 8
 
     if (
         is_high_risk
@@ -105,7 +105,7 @@ def compute_ground_truth_esi(patient: PatientRecord) -> int:
         or v.systolic_bp < 95
         or v.spo2 < 94
         or v.temperature > 38.5
-        or v.pain_score >= 6
+        or v.pain_level >= 6
     )
 
     if needs_resources or has_comorbidities or moderate_vital_abnormality:
@@ -119,7 +119,7 @@ def compute_ground_truth_esi(patient: PatientRecord) -> int:
         "minor burn", "cold symptoms", "cough", "flu",
     ]
     one_resource = any(kw in complaint_lower for kw in simple_complaints)
-    if one_resource or v.pain_score <= 3:
+    if one_resource or v.pain_level <= 3:
         return 4
 
     # --- ESI 5: No resources needed ---
