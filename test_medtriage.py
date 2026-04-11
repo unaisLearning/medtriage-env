@@ -121,7 +121,7 @@ class TestTask1Grader:
 
     def test_exact_match_scores_1(self):
         score, _ = self.g.grade(2, 2, [6, 7], "chest pain")
-        assert score == pytest.approx(1.0, abs=0.01)
+        assert 0.99 <= score < 1.0
 
     def test_off_by_1_partial_credit(self):
         score, _ = self.g.grade(3, 2, [], "chest pain")
@@ -135,11 +135,11 @@ class TestTask1Grader:
 
     def test_off_by_3_zero(self):
         score, _ = self.g.grade(5, 1, [], "prescription refill")
-        assert score == pytest.approx(0.0)
+        assert 0.0 < score <= 1e-5
 
     def test_no_assignment_zero(self):
         score, _ = self.g.grade(None, 2, [18], "chest pain")
-        assert score == pytest.approx(0.0)
+        assert 0.0 < score <= 1e-5
 
     def test_diagnostic_bonus_chest_pain(self):
         score_with, _ = self.g.grade(2, 2, [6, 7], "chest pain")     # ECG + Labs
@@ -155,7 +155,7 @@ class TestTask1Grader:
         for assigned in range(1, 6):
             for gt in range(1, 6):
                 score, _ = self.g.grade(assigned, gt, [6], "chest pain")
-                assert 0.0 <= score <= 1.0, f"Score {score} out of range for {assigned} vs {gt}"
+                assert 0.0 < score < 1.0, f"Score {score} out of range for {assigned} vs {gt}"
 
 
 class TestTask2Grader:
@@ -188,7 +188,7 @@ class TestTask2Grader:
             shuffled = list(self.gt)
             rng.shuffle(shuffled)
             score, _ = self.g.grade(shuffled, self.gt, self.esi_map)
-            assert 0.0 <= score <= 1.0
+            assert 0.0 < score < 1.0
 
 
 class TestTask3Grader:
@@ -233,7 +233,7 @@ class TestTask3Grader:
                 escalation_step=3, missed_deteriorations=1,
                 chief_complaint="chest pain",
             )
-            assert 0.0 <= score <= 1.0, f"Score {score} out of range"
+            assert 0.0 < score < 1.0, f"Score {score} out of range"
 
 
 # ─────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ class TestEnvironmentTask1:
         result = env.step(MedTriageAction(action=TriageAction.ASSIGN_ESI_5))
         state = env.state()
         assert state.task_score is not None
-        assert 0.0 <= state.task_score <= 1.0
+        assert 0.0 < state.task_score < 1.0
 
     def test_deterministic_across_runs(self):
         scores = []
@@ -312,7 +312,7 @@ class TestEnvironmentTask2:
         env.step(MedTriageAction(action=TriageAction.REASSESS, patient_rankings=ids))
         state = env.state()
         assert state.task_score is not None
-        assert 0.0 <= state.task_score <= 1.0
+        assert 0.0 < state.task_score < 1.0
 
 
 class TestEnvironmentTask3:
@@ -331,15 +331,15 @@ class TestEnvironmentTask3:
             obs = result.observation
         state = env.state()
         assert state.task_score is not None
-        assert 0.0 <= state.task_score <= 1.0
+        assert 0.0 < state.task_score < 1.0
 
     def test_escalation_during_deterioration_rewarded(self):
         env = MedTriageEnvLocal("task3_dynamic_deterioration")
         env.reset(seed=7)
         # Step through until deterioration, then escalate.
         # Repeated diagnostics now incur a small penalty, so we verify the
-        # clinically important property directly: timely escalation earns a
-        # positive reward once the patient worsens.
+        # Check the main thing we care about: timely escalation should help
+        # once the patient starts to worsen.
         escalation_reward = None
         for step in range(5):
             if step < 2:
@@ -409,7 +409,7 @@ class TestOpenEnvSpecCompliance:
             assert callable(env.state)
 
     def test_all_task_scores_in_0_1(self):
-        """Core requirement: graders must return scores 0.0–1.0."""
+        """Core requirement: graders must return scores strictly within (0, 1)."""
         results = {}
         for task in ["task1_single_patient", "task2_multi_patient", "task3_dynamic_deterioration"]:
             env = MedTriageEnvLocal(task)
@@ -429,7 +429,7 @@ class TestOpenEnvSpecCompliance:
             score = env.state().task_score
             results[task] = score
             assert score is not None, f"task_score is None for {task}"
-            assert 0.0 <= score <= 1.0, f"Score {score} out of [0,1] for {task}"
+            assert 0.0 < score < 1.0, f"Score {score} out of (0,1) for {task}"
 
     def test_legal_actions_always_subset_of_all_actions(self):
         all_actions = {int(a.value) for a in TriageAction}

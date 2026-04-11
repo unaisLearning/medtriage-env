@@ -44,8 +44,8 @@ app = FastAPI(
     title="MedTriageEnv",
     description=(
         "Emergency Department Triage Simulator — OpenEnv compatible. "
-        "Train AI agents to triage patients, order diagnostics, and respond "
-        "to deteriorating conditions. 3 tasks: easy → medium → hard."
+        "The agent triages patients, orders diagnostics, and responds "
+        "to deterioration. 3 tasks: easy, medium, hard."
     ),
     version="1.0.0",
 )
@@ -99,7 +99,7 @@ class StepRequest(BaseModel):
 
 @app.get("/health")
 def health() -> Dict[str, str]:
-    """Health check — used by OpenEnv validator and HF Space ping."""
+    """Health check for the app."""
     return {"status": "ok", "environment": "MedTriageEnv", "version": "1.0.0"}
 
 
@@ -315,7 +315,7 @@ curl -X POST /reset -H "Content-Type: application/json" \\
 
 # Assign ESI level 2 (emergent)
 curl -X POST /step -H "Content-Type: application/json" \\
-  -d '{"action": 2, "reasoning": "Chest pain with haemodynamic instability"}'
+  -d '{"action": 2, "reasoning": "Chest pain with hemodynamic instability"}'
 
 # Get state
 curl /state

@@ -1,10 +1,7 @@
 """
-Graders for MedTriageEnv — one per task, all deterministic, scores 0.0–1.0.
+Graders for MedTriageEnv.
 
-Design principles:
-  - Partial credit everywhere (not binary)
-  - Medically grounded penalties (wrong ESI direction matters clinically)
-  - Clear, reproducible logic that a human reviewer can audit
+Each task gets a deterministic score in the open interval (0, 1).
 """
 
 from __future__ import annotations
@@ -13,6 +10,16 @@ import math
 from typing import Dict, List, Optional, Tuple
 
 from medtriage_env.models import MedTriageState, TriageAction
+
+
+STRICT_SCORE_EPSILON = 1e-6
+
+
+def _strict_unit_interval(value: float) -> float:
+    """
+    Keep final task scores away from the exact 0 and 1 endpoints.
+    """
+    return min(1.0 - STRICT_SCORE_EPSILON, max(STRICT_SCORE_EPSILON, value))
 
 
 # ---------------------------------------------------------------------------
@@ -100,9 +107,9 @@ class Task1Grader:
         noop_penalty = -0.20 if only_noop else 0.0
         breakdown["noop_penalty"] = noop_penalty
 
-        # --- Final score, clamped [0, 1] ---
-        final = max(0.0, min(1.0, esi_score + bonus + noop_penalty))
-        breakdown["final_score"] = round(final, 4)
+        # Avoid exact 0 or 1 here; the validator rejects endpoint scores.
+        final = _strict_unit_interval(esi_score + bonus + noop_penalty)
+        breakdown["final_score"] = round(final, 6)
 
         return final, breakdown
 
@@ -115,9 +122,8 @@ class Task2Grader:
     """
     Grade the agent's ranking of N patients by urgency.
 
-    Uses a tie-aware pairwise ordering score derived from ground-truth ESI.
-    Pairs with equal ESI are ignored instead of being counted as discordant,
-    so agents are not penalised for arbitrary orderings among tied-acuity patients.
+    Uses a tie-aware pairwise ordering score from ground-truth ESI.
+    Equal-ESI pairs are ignored.
 
     Additionally:
       +0.10 if critical (ESI 1) patient is ranked #1
@@ -134,7 +140,8 @@ class Task2Grader:
         breakdown: Dict = {}
 
         if not agent_rankings or not ground_truth_rankings:
-            return 0.0, {"error": "Empty rankings provided"}
+            score = _strict_unit_interval(0.0)
+            return score, {"error": "Empty rankings provided", "final_score": round(score, 6)}
 
         patient_ids = [pid for pid in ground_truth_rankings if pid in esi_map]
         agent_rank = {pid: i for i, pid in enumerate(agent_rankings)}
@@ -172,7 +179,7 @@ class Task2Grader:
         breakdown["pairwise_score"] = round(normalized_tau, 4)
         breakdown["ignored_tied_pairs"] = skipped_ties
 
-        # Critical patient bonus/penalty
+        # Small bonus/penalty for the most critical patient
         critical_patients = [pid for pid, esi in esi_map.items() if esi == 1]
         bonus = 0.0
         if critical_patients:
@@ -184,8 +191,8 @@ class Task2Grader:
                 bonus -= 0.15
                 breakdown["critical_penalty"] = "Critical patient not in top 2 (-0.15)"
 
-        final = max(0.0, min(1.0, normalized_tau + bonus))
-        breakdown["final_score"] = round(final, 4)
+        final = _strict_unit_interval(normalized_tau + bonus)
+        breakdown["final_score"] = round(final, 6)
 
         return final, breakdown
 
@@ -198,13 +205,13 @@ class Task3Grader:
     """
     Grade the agent's management of a deteriorating patient over 10 steps.
 
-    Score components (each normalised, then weighted):
+    Score components:
       1. ESI accuracy (30%)      — correct ESI assignment
       2. Escalation timeliness (35%) — did agent escalate before critical threshold?
       3. Diagnostic coverage (20%) — appropriate tests ordered
       4. Step efficiency (15%)   — fewer steps to correct action = higher score
 
-    Final score is weighted sum, clamped [0, 1].
+    Final score is a weighted sum in the open interval (0, 1).
     """
 
     ESI_WEIGHT        = 0.30
@@ -250,7 +257,7 @@ class Task3Grader:
         breakdown["esi_score"] = round(esi_score, 4)
 
         # --- Component 2: Escalation timeliness ---
-        # Agent should escalate within 2 steps of deterioration onset
+        # Earlier is better once the patient starts to worsen.
         if escalation_step is None:
             escalation_score = 0.0
             breakdown["escalation_note"] = "No escalation detected"
@@ -275,7 +282,7 @@ class Task3Grader:
                 escalation_score = max(0.0, 0.25 - (steps_after - 4) * 0.05)
                 breakdown["escalation_note"] = f"Escalated {steps_after} steps late"
 
-        # Penalty for missed deteriorations
+        # Missed deterioration should hurt the score.
         missed_penalty = min(0.30, missed_deteriorations * 0.10)
         escalation_score = max(0.0, escalation_score - missed_penalty)
         breakdown["escalation_score"] = round(escalation_score, 4)
@@ -309,7 +316,7 @@ class Task3Grader:
         breakdown["diagnostic_score"] = round(diagnostic_score, 4)
 
         # --- Component 4: Efficiency ---
-        # Reward completing task in fewer steps (max bonus at step ≤3, min at max_steps)
+        # Fewer steps to the right action gets a better score.
         escalation_step_val = escalation_step if escalation_step is not None else max_steps
         ideal_steps = deterioration_step + 1  # perfect: escalate immediately
         actual_steps = escalation_step_val
@@ -324,8 +331,8 @@ class Task3Grader:
             + diagnostic_score * self.DIAGNOSTIC_WEIGHT
             + efficiency_score * self.EFFICIENCY_WEIGHT
         )
-        final = max(0.0, min(1.0, final))
-        breakdown["final_score"] = round(final, 4)
+        final = _strict_unit_interval(final)
+        breakdown["final_score"] = round(final, 6)
         breakdown["weights"] = {
             "esi": self.ESI_WEIGHT,
             "escalation": self.ESCALATION_WEIGHT,

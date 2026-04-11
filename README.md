@@ -13,34 +13,28 @@ tags:
 ---
 
 # MedTriageEnv
-### A Real-World OpenEnv for Emergency Department Triage
+### OpenEnv for Emergency Department Triage
 
-MedTriageEnv is an OpenEnv-compatible reinforcement learning environment that simulates emergency department triage: one of the most time-sensitive and operationally important decision loops in healthcare. The agent must assess acuity, prioritize patients, order appropriate diagnostics, and respond to deterioration under limited steps and changing clinical risk.
+MedTriageEnv is an OpenEnv-compatible reinforcement learning environment for emergency department triage. The agent has to assess acuity, prioritize patients, order diagnostics, and react to deterioration while the episode is still moving.
 
-Unlike toy environments or static medical QA benchmarks, MedTriageEnv evaluates sequential decision-making inside a realistic workflow. The environment is reproducible, graded programmatically, and designed to produce useful reward signals across the full trajectory rather than only at episode end.
-
-This submission focuses on a domain where agent performance is meaningful:
-- triage is a real task performed continuously in hospitals
-- prioritization errors have real clinical consequences
-- partial progress matters, not just binary success
-- deterioration creates temporal reasoning pressure that static benchmarks miss
+It is not a toy benchmark. The environment is meant to model a real workflow where decisions happen step by step, the state changes over time, and partial progress should still matter.
 
 MedTriageEnv includes:
 - single-patient ESI classification
 - multi-patient urgency ranking
 - dynamic deterioration management
 
-The result is a practical environment for training and evaluating healthcare-oriented agents on structured, high-stakes decision-making.
+The goal is to give agents a realistic triage loop to learn from and evaluate against.
 
 ---
 
-## Why This Matters
+## Context
 
-Every minute in an emergency department, nurses make triage decisions that determine who gets seen first. Get it wrong — a patient deteriorates in the waiting room. Current AI systems cannot easily learn this skill — open, reproducible training environments for clinical triage are extremely rare. MedTriageEnv fills that gap.
+Every minute in an emergency department, nurses make triage decisions that affect who gets seen first. If the call is wrong, a patient can worsen while waiting. Open, reproducible training environments for triage are still rare, and this project tries to close that gap.
 
 - Built on **ESI v4** — the actual triage algorithm used in US hospitals
 - **12 seeded clinical scenarios** covering sepsis, chest pain, trauma, stroke, and more
-- **Deterministic graders** — fully reproducible, no randomness in scoring
+- **Deterministic graders** — reproducible scoring
 - **Curriculum difficulty** — easy single-patient to medium multi-patient to hard deterioration
 
 ---
@@ -68,7 +62,7 @@ Current checked-in baseline artifact from [`baseline_results.json`](/Users/unais
 | Task 3 — Dynamic deterioration | 0.24 | - | - | 0.24 |
 | Overall | | | | 0.36 |
 
-The important property is signal separation: passive or clinically weak policies perform poorly, while clinically grounded policies earn materially higher scores.
+The main point is that weak policies should score poorly, while better triage decisions should score higher.
 
 ---
 
@@ -176,11 +170,11 @@ medtriage_env/
 
 ---
 
-## Real-World Impact
+## Use Case
 
 Unlike static medical QA benchmarks, MedTriageEnv is dynamic — patient states change, conditions deteriorate, and the agent must reason across multiple steps under time pressure. This mirrors real clinical decision-making in ways no existing benchmark does.
 
-The gap this fills: hospitals need AI that can assist triage decisions at scale. Training such agents requires a realistic, reproducible environment with medically valid ground truth. Very few open-source environments exist for this domain, and none with this level of medical grounding.
+This gives us a realistic, reproducible setup for training and testing triage agents. There are very few open-source environments for this use case, and even fewer with medically valid ground truth.
 
 ---
 

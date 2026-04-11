@@ -334,7 +334,7 @@ class MedTriageEnvironment:
             patient.assigned_esi = assigned
             delta = abs(assigned - gt_esi)
             if delta == 0:
-                reward += 0.50   # Strong positive signal for correct assignment
+                reward += 0.50   # Correct ESI assignment
                 info["esi_feedback"] = "Correct ESI assignment"
             elif delta == 1:
                 reward += 0.20   # Partial credit
@@ -399,7 +399,7 @@ class MedTriageEnvironment:
             self._done = True
 
         elif action_val == TriageAction.REASSESS.value:
-            reward += 0.02   # Small bonus for taking time to reassess before ranking
+            reward += 0.02   # Small bonus for reassessing first
             info["reassess_note"] = "Reassessing all patients"
 
         return reward, info
@@ -446,7 +446,7 @@ class MedTriageEnvironment:
             if self._escalation_step is None:
                 self._escalation_step = step_idx
             if is_deteriorating:
-                reward += 0.35   # Strong reward for escalating on deterioration
+                reward += 0.35   # Escalation during deterioration
                 info["escalation_note"] = "Timely escalation during deterioration"
             else:
                 reward -= 0.05

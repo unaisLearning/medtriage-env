@@ -1,8 +1,8 @@
 """
 Patient scenario generator for MedTriageEnv.
 
-All scenarios are seeded and deterministic — same seed → same patients.
-Ground-truth ESI levels computed using validated ESI v4 algorithm logic.
+Same seed gives the same patients.
+Ground-truth ESI levels are computed with the ESI v4 logic used in this repo.
 """
 
 from __future__ import annotations
@@ -434,7 +434,7 @@ def generate_task2_scenario(seed: int, n_patients: int = 5) -> List[ScenarioSpec
     Task 2 — Multi-patient prioritisation.
     Returns a diverse multi-patient queue.
     Preference is given to covering distinct ESI buckets first, then filling
-    any remaining slots deterministically from the leftover pool.
+    any remaining slots from the leftover pool.
     """
     rng = random.Random(seed)
     scored_specs: List[Tuple[Dict, int]] = []

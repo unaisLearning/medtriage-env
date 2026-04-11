@@ -1,10 +1,10 @@
 name: MedTriageEnv
 version: "1.0.0"
 description: >
-  Emergency Department Triage Simulator. An AI agent acts as an ED triage nurse,
+  Emergency Department Triage Simulator. The agent acts as an ED triage nurse,
   assessing patient acuity, prioritising care, and responding to deteriorating conditions.
-  3 tasks of increasing difficulty — from single-patient ESI classification to
-  multi-patient prioritisation to dynamic deterioration management.
+  3 tasks of increasing difficulty: single-patient ESI classification, multi-patient
+  prioritisation, and dynamic deterioration management.
 
 author: MedTriageEnv Team
 curriculum:

@@ -263,7 +263,7 @@ class MedTriageObservation(BaseModel):
         ),
     )
 
-    # Reward signals (visible each step for learning)
+    # Per-step reward values
     step_reward: float = Field(
         default=0.0,
         description=(
