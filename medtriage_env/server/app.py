@@ -124,7 +124,7 @@ def list_tasks() -> Dict[str, Any]:
                 "max_steps": 8,
                 "description": (
                     "Five patients arrive simultaneously. Rank them from most urgent to least urgent. "
-                    "Grader uses Kendall's tau-b rank correlation (0.0–1.0)."
+                    "Grader uses Kendall's tau-b rank correlation with the final score kept inside the task range."
                 ),
                 "expected_baseline_score": 0.94,
             },

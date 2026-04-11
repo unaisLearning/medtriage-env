@@ -43,7 +43,7 @@ tasks:
   - id: task1_single_patient
     difficulty: easy
     max_steps: 5
-    score_range: [0.0, 1.0]
+    score_range: [0.06, 0.94]
     description: >
       Assign the correct Emergency Severity Index (ESI 1–5) to a single patient.
       Partial credit for near-correct assignments. Bonus for appropriate diagnostics.
@@ -51,7 +51,7 @@ tasks:
   - id: task2_multi_patient
     difficulty: medium
     max_steps: 8
-    score_range: [0.0, 1.0]
+    score_range: [0.06, 0.94]
     description: >
       Rank 5 simultaneous patients from most to least urgent.
       Graded using Kendall tau-b rank correlation. Bonus for correctly identifying
@@ -60,7 +60,7 @@ tasks:
   - id: task3_dynamic_deterioration
     difficulty: hard
     max_steps: 10
-    score_range: [0.0, 1.0]
+    score_range: [0.06, 0.94]
     description: >
       Manage a patient whose vitals deteriorate over 10 steps.
       Weighted composite score: ESI accuracy (30%), escalation timeliness (35%),

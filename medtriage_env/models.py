@@ -340,7 +340,7 @@ class MedTriageState(BaseModel):
     task_score: Optional[float] = Field(
         default=None,
         description=(
-            "Final task score between 0.0 and 1.0 as computed by the grader. "
+            "Final task score kept strictly inside the configured score range. "
             "None until the episode is complete."
         ),
     )
