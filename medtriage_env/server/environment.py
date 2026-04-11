@@ -584,7 +584,7 @@ class MedTriageEnvironment:
                     esi_map=esi_map,
                 )
             else:
-                score, breakdown = 0.0, {"note": "No ranking submitted"}
+                score, breakdown = 0.001, {"note": "No ranking submitted"}
 
         elif self._task_id == "task3_dynamic_deterioration":
             gt_esi = self._ground_truth_specs[0].ground_truth_esi
@@ -601,7 +601,7 @@ class MedTriageEnvironment:
                 max_steps=self.MAX_STEPS[self._task_id],
             )
         else:
-            score, breakdown = 0.0, {}
+            score, breakdown = 0.001, {}
 
         self._state.task_score = score  # type: ignore
         return score, breakdown
