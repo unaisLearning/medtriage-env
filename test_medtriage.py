@@ -135,11 +135,11 @@ class TestTask1Grader:
 
     def test_off_by_3_zero(self):
         score, _ = self.g.grade(5, 1, [], "prescription refill")
-        assert 0.0 < score <= 1e-5
+        assert 0.0 < score <= 1e-3
 
     def test_no_assignment_zero(self):
         score, _ = self.g.grade(None, 2, [18], "chest pain")
-        assert 0.0 < score <= 1e-5
+        assert 0.0 < score <= 1e-3
 
     def test_diagnostic_bonus_chest_pain(self):
         score_with, _ = self.g.grade(2, 2, [6, 7], "chest pain")     # ECG + Labs

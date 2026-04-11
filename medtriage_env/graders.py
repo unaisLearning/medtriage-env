@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Tuple
 from medtriage_env.models import MedTriageState, TriageAction
 
 
-STRICT_SCORE_EPSILON = 1e-6
+STRICT_SCORE_EPSILON = 1e-3
 
 
 def _strict_unit_interval(value: float) -> float:

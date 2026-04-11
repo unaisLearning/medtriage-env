@@ -49,7 +49,7 @@ SEEDS            = [42, 7, 99]   # 3 seeds per task → 9 episodes total
 TEMPERATURE      = 0.1            # Low temp for reproducibility
 MAX_TOKENS       = 512
 FALLBACK_ACTION  = TriageAction.REASSESS.value
-STRICT_SCORE_EPSILON = 1e-6
+STRICT_SCORE_EPSILON = 1e-3
 
 
 def _strict_unit_interval(value: float) -> float:
