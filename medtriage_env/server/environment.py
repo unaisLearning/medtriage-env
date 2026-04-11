@@ -296,9 +296,8 @@ class MedTriageEnvironment:
             self._done = True
             # Final grading
             if self._state.task_score is None:
-                final_score, grade_breakdown = self._final_grade()
+                final_score, _grade_breakdown = self._final_grade()
                 self._state.task_score = final_score  # type: ignore
-                info["final_grade"] = grade_breakdown
                 info["final_score"] = final_score
 
         obs = self._build_observation(step_reward=step_reward)
