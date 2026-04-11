@@ -12,20 +12,21 @@ from typing import Dict, List, Optional, Tuple
 from medtriage_env.models import MedTriageState, TriageAction
 
 
-STRICT_SCORE_EPSILON = 1e-3
+STRICT_SCORE_MIN = 0.06
+STRICT_SCORE_MAX = 0.94
 
 
 def _strict_unit_interval(value: float) -> float:
     """
     Keep final task scores away from the exact 0 and 1 endpoints.
     """
-    return min(1.0 - STRICT_SCORE_EPSILON, max(STRICT_SCORE_EPSILON, value))
+    return min(STRICT_SCORE_MAX, max(STRICT_SCORE_MIN, value))
 
 
 # ---------------------------------------------------------------------------
 def _strict_clamp(score: float) -> float:
     """Clamp score to strictly open interval (0, 1) as required by judges."""
-    return max(0.001, min(0.999, float(score)))
+    return max(STRICT_SCORE_MIN, min(STRICT_SCORE_MAX, float(score)))
 
 
 # Task 1 Grader — Single patient ESI classification

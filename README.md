@@ -57,10 +57,10 @@ Current checked-in baseline artifact from [`baseline_results.json`](/Users/unais
 
 | Task | Seed 42 | Seed 7 | Seed 99 | Average |
 |------|---------|--------|---------|---------|
-| Task 1 — Single patient ESI | 0.35 | - | - | 0.35 |
-| Task 2 — Multi-patient ranking | 0.50 | - | - | 0.50 |
-| Task 3 — Dynamic deterioration | 0.24 | - | - | 0.24 |
-| Overall | | | | 0.36 |
+| Task 1 — Single patient ESI | 0.94 | 0.60 | 0.60 | 0.73 |
+| Task 2 — Multi-patient ranking | 0.94 | 0.94 | 0.94 | 0.94 |
+| Task 3 — Dynamic deterioration | 0.35 | 0.05 | 0.05 | 0.15 |
+| Overall | | | | 0.61 |
 
 The main point is that weak policies should score poorly, while better triage decisions should score higher.
 

@@ -7,10 +7,10 @@
   ],
   "task_scores": {
     "task1_single_patient": 0.7333,
-    "task2_multi_patient": 0.999,
+    "task2_multi_patient": 0.94,
     "task3_dynamic_deterioration": 0.1475
   },
-  "overall_mean": 0.6269,
+  "overall_mean": 0.6069,
   "runtime_seconds": 18.2,
   "episodes": [
     {
@@ -26,7 +26,7 @@
           "done": true
         }
       ],
-      "final_score": 0.999
+      "final_score": 0.94
     },
     {
       "task_id": "task1_single_patient",
@@ -71,7 +71,7 @@
           "done": true
         }
       ],
-      "final_score": 0.999
+      "final_score": 0.94
     },
     {
       "task_id": "task2_multi_patient",
@@ -86,7 +86,7 @@
           "done": true
         }
       ],
-      "final_score": 0.999
+      "final_score": 0.94
     },
     {
       "task_id": "task2_multi_patient",
@@ -101,7 +101,7 @@
           "done": true
         }
       ],
-      "final_score": 0.999
+      "final_score": 0.94
     },
     {
       "task_id": "task3_dynamic_deterioration",

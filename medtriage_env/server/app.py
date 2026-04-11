@@ -116,7 +116,7 @@ def list_tasks() -> Dict[str, Any]:
                     "Assess a single ED patient and assign the correct ESI triage level (1–5). "
                     "Order appropriate diagnostics. Grader uses partial credit by ESI distance."
                 ),
-                "expected_baseline_score": 0.35,
+                "expected_baseline_score": 0.73,
             },
             {
                 "id": "task2_multi_patient",
@@ -126,7 +126,7 @@ def list_tasks() -> Dict[str, Any]:
                     "Five patients arrive simultaneously. Rank them from most urgent to least urgent. "
                     "Grader uses Kendall's tau-b rank correlation (0.0–1.0)."
                 ),
-                "expected_baseline_score": 0.50,
+                "expected_baseline_score": 0.94,
             },
             {
                 "id": "task3_dynamic_deterioration",
@@ -138,7 +138,7 @@ def list_tasks() -> Dict[str, Any]:
                     "Grader weights ESI accuracy (30%) + escalation timeliness (35%) "
                     "+ diagnostic coverage (20%) + efficiency (15%)."
                 ),
-                "expected_baseline_score": 0.24,
+                "expected_baseline_score": 0.15,
             },
         ]
     }

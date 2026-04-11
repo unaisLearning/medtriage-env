@@ -121,7 +121,7 @@ class TestTask1Grader:
 
     def test_exact_match_scores_1(self):
         score, _ = self.g.grade(2, 2, [6, 7], "chest pain")
-        assert 0.99 <= score < 1.0
+        assert 0.90 <= score <= 0.94
 
     def test_off_by_1_partial_credit(self):
         score, _ = self.g.grade(3, 2, [], "chest pain")
@@ -135,11 +135,11 @@ class TestTask1Grader:
 
     def test_off_by_3_zero(self):
         score, _ = self.g.grade(5, 1, [], "prescription refill")
-        assert 0.0 < score <= 1e-3
+        assert 0.05 <= score <= 0.06
 
     def test_no_assignment_zero(self):
         score, _ = self.g.grade(None, 2, [18], "chest pain")
-        assert 0.0 < score <= 1e-3
+        assert 0.05 <= score <= 0.06
 
     def test_diagnostic_bonus_chest_pain(self):
         score_with, _ = self.g.grade(2, 2, [6, 7], "chest pain")     # ECG + Labs
@@ -166,7 +166,7 @@ class TestTask2Grader:
 
     def test_perfect_ranking_scores_high(self):
         score, _ = self.g.grade(self.gt, self.gt, self.esi_map)
-        assert score >= 0.95
+        assert 0.90 <= score <= 0.94
 
     def test_reversed_ranking_scores_low(self):
         score, _ = self.g.grade(list(reversed(self.gt)), self.gt, self.esi_map)
