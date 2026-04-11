@@ -115,9 +115,9 @@ class Task2Grader:
     """
     Grade the agent's ranking of N patients by urgency.
 
-    Uses Kendall's tau-b correlation between agent ranking and ground-truth ranking.
-    Tau ranges from −1 (perfectly reversed) to +1 (perfect agreement).
-    We normalise to [0, 1]: score = (tau + 1) / 2
+    Uses a tie-aware pairwise ordering score derived from ground-truth ESI.
+    Pairs with equal ESI are ignored instead of being counted as discordant,
+    so agents are not penalised for arbitrary orderings among tied-acuity patients.
 
     Additionally:
       +0.10 if critical (ESI 1) patient is ranked #1
@@ -136,23 +136,25 @@ class Task2Grader:
         if not agent_rankings or not ground_truth_rankings:
             return 0.0, {"error": "Empty rankings provided"}
 
-        n = len(ground_truth_rankings)
-
-        # Build rank dicts (rank 1 = most urgent)
-        gt_rank = {pid: i for i, pid in enumerate(ground_truth_rankings)}
+        patient_ids = [pid for pid in ground_truth_rankings if pid in esi_map]
         agent_rank = {pid: i for i, pid in enumerate(agent_rankings)}
 
-        # Kendall's tau-b
         concordant = 0
         discordant = 0
+        skipped_ties = 0
         n_pairs = 0
-        for i in range(n):
-            for j in range(i + 1, n):
-                pid_i = ground_truth_rankings[i]
-                pid_j = ground_truth_rankings[j]
+        for i in range(len(patient_ids)):
+            for j in range(i + 1, len(patient_ids)):
+                pid_i = patient_ids[i]
+                pid_j = patient_ids[j]
                 if pid_i not in agent_rank or pid_j not in agent_rank:
                     continue
-                gt_order = gt_rank[pid_i] < gt_rank[pid_j]  # True = i more urgent
+                esi_i = esi_map[pid_i]
+                esi_j = esi_map[pid_j]
+                if esi_i == esi_j:
+                    skipped_ties += 1
+                    continue
+                gt_order = esi_i < esi_j  # lower ESI means more urgent
                 agent_order = agent_rank[pid_i] < agent_rank[pid_j]
                 if gt_order == agent_order:
                     concordant += 1
@@ -166,8 +168,9 @@ class Task2Grader:
             tau = (concordant - discordant) / n_pairs
 
         normalized_tau = (tau + 1.0) / 2.0
-        breakdown["kendall_tau"] = round(tau, 4)
-        breakdown["tau_score"] = round(normalized_tau, 4)
+        breakdown["pairwise_tau"] = round(tau, 4)
+        breakdown["pairwise_score"] = round(normalized_tau, 4)
+        breakdown["ignored_tied_pairs"] = skipped_ties
 
         # Critical patient bonus/penalty
         critical_patients = [pid for pid, esi in esi_map.items() if esi == 1]
@@ -253,10 +256,12 @@ class Task3Grader:
             breakdown["escalation_note"] = "No escalation detected"
         else:
             steps_after = escalation_step - deterioration_step
-            if steps_after <= 0:
-                # Escalated before/at deterioration (proactive)
+            if steps_after < 0:
+                escalation_score = max(0.2, 0.6 - (abs(steps_after) - 1) * 0.15)
+                breakdown["escalation_note"] = "Premature escalation"
+            elif steps_after == 0:
                 escalation_score = 1.0
-                breakdown["escalation_note"] = "Proactive escalation"
+                breakdown["escalation_note"] = "Escalated at deterioration onset"
             elif steps_after == 1:
                 escalation_score = 0.85
                 breakdown["escalation_note"] = "Escalated 1 step after deterioration"

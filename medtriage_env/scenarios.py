@@ -432,13 +432,38 @@ def generate_task1_scenario(seed: int) -> ScenarioSpec:
 def generate_task2_scenario(seed: int, n_patients: int = 5) -> List[ScenarioSpec]:
     """
     Task 2 — Multi-patient prioritisation.
-    Returns 5 patients with diverse ESI levels (ensures ESI spread 1–4).
+    Returns a diverse multi-patient queue.
+    Preference is given to covering distinct ESI buckets first, then filling
+    any remaining slots deterministically from the leftover pool.
     """
     rng = random.Random(seed)
-    # Sample without replacement to get diversity
-    pool = list(SCENARIO_BANK)
-    rng.shuffle(pool)
-    selected = pool[:n_patients]
+    scored_specs: List[Tuple[Dict, int]] = []
+    for spec in SCENARIO_BANK:
+        patient = _build_patient(spec, "TMP")
+        scored_specs.append((spec, compute_ground_truth_esi(patient)))
+
+    buckets: Dict[int, List[Dict]] = {}
+    for spec, esi in scored_specs:
+        buckets.setdefault(esi, []).append(spec)
+
+    for bucket in buckets.values():
+        rng.shuffle(bucket)
+
+    selected: List[Dict] = []
+    for esi in sorted(buckets):
+        if len(selected) >= n_patients:
+            break
+        if buckets[esi]:
+            selected.append(buckets[esi].pop())
+
+    leftovers: List[Dict] = []
+    for esi in sorted(buckets):
+        leftovers.extend(buckets[esi])
+    rng.shuffle(leftovers)
+
+    while len(selected) < n_patients and leftovers:
+        selected.append(leftovers.pop())
+
     specs = []
     for i, spec in enumerate(selected):
         patient_id = f"P{i+1:03d}"
@@ -463,11 +488,12 @@ def generate_task3_scenario(seed: int) -> Tuple[ScenarioSpec, List[Dict]]:
     # Build 10-step deterioration schedule
     deterioration_steps = spec.get("deterioration", [])
     schedule = []
+    warmup_steps = 2
     for step in range(10):
-        if step < len(deterioration_steps):
-            schedule.append(deterioration_steps[step])
+        pattern_idx = step - warmup_steps
+        if 0 <= pattern_idx < len(deterioration_steps):
+            schedule.append(deterioration_steps[pattern_idx])
         else:
-            # No change after defined deterioration pattern
             schedule.append({})
 
     return ScenarioSpec(patient=patient, ground_truth_esi=esi), schedule

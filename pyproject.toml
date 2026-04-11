@@ -37,4 +37,4 @@ where = ["."]
 include = ["medtriage_env*"]
 
 [project.scripts]
-server = "server.app:main"
+server = "medtriage_env.server.app:main"

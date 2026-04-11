@@ -336,18 +336,27 @@ class TestEnvironmentTask3:
     def test_escalation_during_deterioration_rewarded(self):
         env = MedTriageEnvLocal("task3_dynamic_deterioration")
         env.reset(seed=7)
-        # Step through until deterioration, then escalate
-        cumulative = 0.0
+        # Step through until deterioration, then escalate.
+        # Repeated diagnostics now incur a small penalty, so we verify the
+        # clinically important property directly: timely escalation earns a
+        # positive reward once the patient worsens.
+        escalation_reward = None
         for step in range(5):
-            if step < 3:
+            if step < 2:
                 action = MedTriageAction(action=TriageAction.ORDER_LABS)
             else:
                 action = MedTriageAction(action=TriageAction.CALL_PHYSICIAN)
             result = env.step(action)
-            cumulative += result.reward
+            if (
+                escalation_reward is None
+                and action.action == TriageAction.CALL_PHYSICIAN
+                and result.info.get("escalation_note")
+            ):
+                escalation_reward = result.reward
             if result.done:
                 break
-        assert cumulative > 0, "Escalation should produce positive cumulative reward"
+        assert escalation_reward is not None
+        assert escalation_reward > 0, "Timely escalation should produce positive reward"
 
 
 # ─────────────────────────────────────────────────────────────

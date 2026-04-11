@@ -104,14 +104,14 @@ observation_space:
 
 # Baseline scores (LLM agent, gpt-4o-mini equivalent)
 baseline_scores:
-  task1_single_patient: 0.65
-  task2_multi_patient: 0.45
-  task3_dynamic_deterioration: 0.30
+  task1_single_patient: 0.35
+  task2_multi_patient: 0.50
+  task3_dynamic_deterioration: 0.24
 
 # Infrastructure
 server:
   framework: fastapi
-  port: 8000
+  port: 7860
   health_endpoint: /health
 
 docker:

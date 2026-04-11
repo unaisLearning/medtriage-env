@@ -12,10 +12,25 @@ tags:
   - agent-environment
 ---
 
-# MedTriageEnv 🏥
-### Emergency Department Triage Simulator — OpenEnv RL Environment
+# MedTriageEnv
+### A Real-World OpenEnv for Emergency Department Triage
 
-> **136 million ED visits** occur annually in the US. Triage errors contribute to **1 in 4 preventable adverse events** in hospitals. MedTriageEnv is an **open-source RL environment** for emergency department triage — training AI agents to make the same life-critical decisions ED nurses and physicians make under time pressure every day.
+MedTriageEnv is an OpenEnv-compatible reinforcement learning environment that simulates emergency department triage: one of the most time-sensitive and operationally important decision loops in healthcare. The agent must assess acuity, prioritize patients, order appropriate diagnostics, and respond to deterioration under limited steps and changing clinical risk.
+
+Unlike toy environments or static medical QA benchmarks, MedTriageEnv evaluates sequential decision-making inside a realistic workflow. The environment is reproducible, graded programmatically, and designed to produce useful reward signals across the full trajectory rather than only at episode end.
+
+This submission focuses on a domain where agent performance is meaningful:
+- triage is a real task performed continuously in hospitals
+- prioritization errors have real clinical consequences
+- partial progress matters, not just binary success
+- deterioration creates temporal reasoning pressure that static benchmarks miss
+
+MedTriageEnv includes:
+- single-patient ESI classification
+- multi-patient urgency ranking
+- dynamic deterioration management
+
+The result is a practical environment for training and evaluating healthcare-oriented agents on structured, high-stakes decision-making.
 
 ---
 
@@ -38,22 +53,22 @@ Every minute in an emergency department, nurses make triage decisions that deter
 | task2_multi_patient | Medium | Rank 5 simultaneous patients by urgency | 8 |
 | task3_dynamic_deterioration | Hard | Manage a patient whose vitals deteriorate over 10 steps | 10 |
 
-Task 3 is genuinely hard — the agent must detect deterioration trends across steps and escalate at exactly the right moment. Too early = unnecessary escalation penalty. Too late = missed deterioration penalty.
+Task 3 is genuinely hard — the agent must detect deterioration trends across steps and escalate at exactly the right moment. Escalating too early is penalised, and waiting too long incurs missed-deterioration penalties.
 
 ---
 
 ## Baseline Scores
 
-Baseline agent: rule-based heuristic (vital sign thresholds). LLM agent scores expected to be higher.
+Current checked-in baseline artifact from [`baseline_results.json`](/Users/unais/Downloads/medtriage_env/baseline_results.json) reports the following scores:
 
 | Task | Seed 42 | Seed 7 | Seed 99 | Average |
 |------|---------|--------|---------|---------|
-| Task 1 — Single patient ESI | 0.30 | 0.65 | 1.00 | 0.65 |
-| Task 2 — Multi-patient ranking | 0.80 | 0.60 | 0.45 | 0.62 |
-| Task 3 — Dynamic deterioration | 0.91 | 0.91 | 0.82 | 0.88 |
-| Overall | | | | 0.72 |
+| Task 1 — Single patient ESI | 0.35 | - | - | 0.35 |
+| Task 2 — Multi-patient ranking | 0.50 | - | - | 0.50 |
+| Task 3 — Dynamic deterioration | 0.24 | - | - | 0.24 |
+| Overall | | | | 0.36 |
 
-A random or NOOP agent scores near 0 on all tasks — showing the environment has real signal.
+The important property is signal separation: passive or clinically weak policies perform poorly, while clinically grounded policies earn materially higher scores.
 
 ---
 

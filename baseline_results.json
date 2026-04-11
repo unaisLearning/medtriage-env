@@ -1,17 +1,17 @@
 {
-  "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
   "seeds": [
     42,
     7,
     99
   ],
   "task_scores": {
-    "task1_single_patient": 0.35,
-    "task2_multi_patient": 0.5,
-    "task3_dynamic_deterioration": 0.24
+    "task1_single_patient": 0.7333,
+    "task2_multi_patient": 1.0,
+    "task3_dynamic_deterioration": 0.1475
   },
-  "overall_mean": 0.3633,
-  "runtime_seconds": 17.9,
+  "overall_mean": 0.6269,
+  "runtime_seconds": 17.4,
   "episodes": [
     {
       "task_id": "task1_single_patient",
@@ -19,56 +19,9 @@
       "steps": [
         {
           "step": 1,
-          "action": 18,
-          "action_name": "NOOP",
-          "reasoning": "Patient is stable and only requires a prescription refill for oral contraceptive.",
-          "reward": -0.05,
-          "done": false
-        },
-        {
-          "step": 2,
-          "action": 18,
-          "action_name": "NOOP",
-          "reasoning": "Patient is stable and does not require immediate medical intervention, can be managed with a prescri",
-          "reward": -0.05,
-          "done": false
-        },
-        {
-          "step": 3,
-          "action": 18,
-          "action_name": "NOOP",
-          "reasoning": "Patient is stable and only requires a prescription refill, no immediate medical intervention is requ",
-          "reward": -0.05,
-          "done": false
-        },
-        {
-          "step": 4,
-          "action": 18,
-          "action_name": "NOOP",
-          "reasoning": "Patient is stable and requires only a prescription refill, no further action is needed.",
-          "reward": -0.05,
-          "done": false
-        },
-        {
-          "step": 5,
-          "action": 18,
-          "action_name": "NOOP",
-          "reasoning": "Patient is stable and only requires a prescription refill, no further action is needed.",
-          "reward": -0.05,
-          "done": true
-        }
-      ],
-      "final_score": 0.0
-    },
-    {
-      "task_id": "task1_single_patient",
-      "seed": 7,
-      "steps": [
-        {
-          "step": 1,
-          "action": 3,
-          "action_name": "ASSIGN_ESI_3",
-          "reasoning": "Patient presents with severe abdominal pain, tachycardia, and fever, indicating a potential surgical",
+          "action": 2,
+          "action_name": "ASSIGN_ESI_2",
+          "reasoning": "High-risk complaint of sudden severe headache with hypertension and atrial fibrillation, requiring i",
           "reward": 0.5,
           "done": true
         }
@@ -77,50 +30,33 @@
     },
     {
       "task_id": "task1_single_patient",
+      "seed": 7,
+      "steps": [
+        {
+          "step": 1,
+          "action": 5,
+          "action_name": "ASSIGN_ESI_5",
+          "reasoning": "Patient is stable and requires a prescription refill only, no immediate life-saving intervention nee",
+          "reward": 0.2,
+          "done": true
+        }
+      ],
+      "final_score": 0.6
+    },
+    {
+      "task_id": "task1_single_patient",
       "seed": 99,
       "steps": [
         {
           "step": 1,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to assess for potential infection and exacerbation of COPD",
-          "reward": 0.1,
-          "done": false
-        },
-        {
-          "step": 2,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, given his history o",
-          "reward": 0.1,
-          "done": false
-        },
-        {
-          "step": 3,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to investigate the cause of the patient's fever and elevated WBC count, given his history",
-          "reward": 0.1,
-          "done": false
-        },
-        {
-          "step": 4,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, and to assess for p",
-          "reward": 0.1,
-          "done": false
-        },
-        {
-          "step": 5,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to investigate the cause of the patient's fever and productive cough, and to monitor for ",
-          "reward": 0.1,
+          "action": 1,
+          "action_name": "ASSIGN_ESI_1",
+          "reasoning": "Immediate life-saving intervention required due to altered consciousness, tachycardia, tachypnea, an",
+          "reward": 0.2,
           "done": true
         }
       ],
-      "final_score": 0.05
+      "final_score": 0.6
     },
     {
       "task_id": "task2_multi_patient",
@@ -130,12 +66,12 @@
           "step": 1,
           "action": 1,
           "action_name": "ASSIGN_ESI_1",
-          "reasoning": "Assign ESI 1 to P003 due to severe chest pain and diaphoresis",
+          "reasoning": "P001 requires immediate life-saving intervention due to unresponsiveness, hypoxia, and hypotension.",
           "reward": 0.8,
           "done": true
         }
       ],
-      "final_score": 0.5
+      "final_score": 1.0
     },
     {
       "task_id": "task2_multi_patient",
@@ -143,14 +79,14 @@
       "steps": [
         {
           "step": 1,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "Reassess patients to determine their ESI level based on their clinical presentation",
+          "action": 1,
+          "action_name": "ASSIGN_ESI_1",
+          "reasoning": "P001 requires immediate life-saving intervention due to unresponsiveness, hypoxia, and hypotension.",
           "reward": 0.8,
           "done": true
         }
       ],
-      "final_score": 0.5
+      "final_score": 1.0
     },
     {
       "task_id": "task2_multi_patient",
@@ -160,12 +96,12 @@
           "step": 1,
           "action": 1,
           "action_name": "ASSIGN_ESI_1",
-          "reasoning": "P005 requires immediate life-saving intervention due to unresponsiveness and low vital signs.",
+          "reasoning": "P001 requires immediate life-saving intervention due to unresponsiveness, hypoxia, and hypotension.",
           "reward": 0.8,
           "done": true
         }
       ],
-      "final_score": 0.5
+      "final_score": 1.0
     },
     {
       "task_id": "task3_dynamic_deterioration",
@@ -173,86 +109,86 @@
       "steps": [
         {
           "step": 1,
-          "action": 7,
-          "action_name": "ORDER_LABS",
-          "reasoning": "Order labs to assess for potential infection and exacerbation of COPD",
-          "reward": 0.1,
+          "action": 10,
+          "action_name": "CALL_PHYSICIAN",
+          "reasoning": "Call a physician to assess and manage this patient's acute chest pain and hypertension.",
+          "reward": -0.05,
           "done": false
         },
         {
           "step": 2,
           "action": 10,
           "action_name": "CALL_PHYSICIAN",
-          "reasoning": "Call physician for immediate assessment and management of potential respiratory failure in a patient",
-          "reward": 0.1,
+          "reasoning": "Call a physician to assess and manage this patient's acute chest pain and hypertension.",
+          "reward": -0.05,
           "done": false
         },
         {
           "step": 3,
           "action": 10,
           "action_name": "CALL_PHYSICIAN",
-          "reasoning": "fallback parse: {\n  \"action\": 10,\n  \"reasoning\": \"Call physician for immediate assessment and ma",
-          "reward": 0.1,
+          "reasoning": "Call a physician to assess and manage this patient's acute chest pain and hypertension.",
+          "reward": 0.35,
           "done": false
         },
         {
           "step": 4,
-          "action": 11,
-          "action_name": "ACTIVATE_TRAUMA",
-          "reasoning": "Activate trauma team due to patient's high respiratory rate and low oxygen saturation indicating pot",
-          "reward": 0.1,
+          "action": 10,
+          "action_name": "CALL_PHYSICIAN",
+          "reasoning": "Immediate physician consultation is required to assess and manage this patient's deteriorating condi",
+          "reward": 0.35,
           "done": false
         },
         {
           "step": 5,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "Administer oxygen to address hypoxia and tachycardia",
           "reward": 0.0,
           "done": false
         },
         {
           "step": 6,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "fallback parse: {\n  \"action\": 13,\n  \"reasoning\": \"Administer O2 immediately to address hypoxia a",
           "reward": 0.0,
           "done": false
         },
         {
           "step": 7,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "fallback parse: {\n  \"action\": 13,\n  \"reasoning\": \"Administer O2 to address hypoxia and tachycard",
           "reward": 0.0,
           "done": false
         },
         {
           "step": 8,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "fallback parse: {\n  \"action\": 13,\n  \"reasoning\": \"Administer oxygen to address hypoxia and tachy",
           "reward": 0.0,
           "done": false
         },
         {
           "step": 9,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "fallback parse: {\n  \"action\": 13,\n  \"reasoning\": \"Administer O2 to address hypoxia and tachycard",
           "reward": 0.0,
           "done": false
         },
         {
           "step": 10,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
-          "reward": 0.0,
+          "action": 10,
+          "action_name": "CALL_PHYSICIAN",
+          "reasoning": "Immediate physician consultation is required to assess and manage this patient's acute presentation ",
+          "reward": -0.05,
           "done": true
         }
       ],
-      "final_score": 0.6299999999999999
+      "final_score": 0.3525
     },
     {
       "task_id": "task3_dynamic_deterioration",
@@ -260,18 +196,18 @@
       "steps": [
         {
           "step": 1,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
-          "reward": -0.2,
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "Administer oxygen to address the patient's tachypnea and low SpO2",
+          "reward": 0.0,
           "done": false
         },
         {
           "step": 2,
-          "action": 17,
-          "action_name": "REASSESS",
-          "reasoning": "api error",
-          "reward": -0.2,
+          "action": 13,
+          "action_name": "ADMINISTER_O2",
+          "reasoning": "fallback parse: {\n  \"action\": 13,\n  \"reasoning\": \"Administer oxygen to address the patient's tac",
+          "reward": 0.0,
           "done": false
         },
         {
@@ -279,7 +215,7 @@
           "action": 17,
           "action_name": "REASSESS",
           "reasoning": "api error",
-          "reward": 0.0,
+          "reward": -0.2,
           "done": false
         },
         {
@@ -350,7 +286,7 @@
           "action": 17,
           "action_name": "REASSESS",
           "reasoning": "api error",
-          "reward": -0.2,
+          "reward": 0.0,
           "done": false
         },
         {
@@ -358,7 +294,7 @@
           "action": 17,
           "action_name": "REASSESS",
           "reasoning": "api error",
-          "reward": -0.2,
+          "reward": 0.0,
           "done": false
         },
         {
@@ -366,7 +302,7 @@
           "action": 17,
           "action_name": "REASSESS",
           "reasoning": "api error",
-          "reward": 0.0,
+          "reward": -0.2,
           "done": false
         },
         {
@@ -374,7 +310,7 @@
           "action": 17,
           "action_name": "REASSESS",
           "reasoning": "api error",
-          "reward": 0.0,
+          "reward": -0.2,
           "done": false
         },
         {

@@ -198,6 +198,14 @@ class MedTriageEnvironment:
         self._g2 = Task2Grader()
         self._g3 = Task3Grader()
 
+    @staticmethod
+    def _first_deterioration_step(schedule: List[Dict[str, Any]]) -> int:
+        """Return the first step index that contains a deterioration event."""
+        for idx, changes in enumerate(schedule):
+            if changes:
+                return idx
+        return 0
+
     # ------------------------------------------------------------------
     # reset
     # ------------------------------------------------------------------
@@ -232,6 +240,7 @@ class MedTriageEnvironment:
             self._ground_truth_specs = [spec]
             self._patients = [spec.patient.model_copy(deep=True)]
             self._deterioration_schedule = schedule
+            self._deterioration_start_step = self._first_deterioration_step(schedule)
 
         # Initialise state
         self._state = MedTriageState(
@@ -340,9 +349,13 @@ class MedTriageEnvironment:
             TriageAction.ORDER_ECG.value, TriageAction.ORDER_LABS.value,
             TriageAction.ORDER_XRAY.value, TriageAction.ORDER_CT.value,
         ):
-            reward, test_result = self._process_diagnostic(patient, action_val)
-            patient.test_results.update(test_result)
-            info["test_ordered"] = test_result
+            if self._is_duplicate_diagnostic(patient, action_val):
+                reward -= 0.05
+                info["duplicate_test_penalty"] = "Repeated diagnostic order without new information"
+            else:
+                reward, test_result = self._process_diagnostic(patient, action_val)
+                patient.test_results.update(test_result)
+                info["test_ordered"] = test_result
 
         # Supportive care
         elif action_val == TriageAction.ADMINISTER_O2.value:
@@ -436,18 +449,22 @@ class MedTriageEnvironment:
                 reward += 0.35   # Strong reward for escalating on deterioration
                 info["escalation_note"] = "Timely escalation during deterioration"
             else:
-                reward += 0.10
-                info["escalation_note"] = "Escalation (patient stable)"
+                reward -= 0.05
+                info["escalation_note"] = "Premature escalation while patient stable"
 
         # Diagnostics
         elif action_val in (
             TriageAction.ORDER_ECG.value, TriageAction.ORDER_LABS.value,
             TriageAction.ORDER_XRAY.value, TriageAction.ORDER_CT.value,
         ):
-            diag_reward, test_result = self._process_diagnostic(patient, action_val)
-            reward += diag_reward
-            patient.test_results.update(test_result)
-            info["test_ordered"] = test_result
+            if self._is_duplicate_diagnostic(patient, action_val):
+                reward -= 0.05
+                info["duplicate_test_penalty"] = "Repeated diagnostic order without new information"
+            else:
+                diag_reward, test_result = self._process_diagnostic(patient, action_val)
+                reward += diag_reward
+                patient.test_results.update(test_result)
+                info["test_ordered"] = test_result
 
         # Missed deterioration penalty
         if is_deteriorating and action_val in (
@@ -530,6 +547,19 @@ class MedTriageEnvironment:
                 return 0.06, result
 
         return 0.05, {}
+
+    def _is_duplicate_diagnostic(self, patient: PatientRecord, action_val: int) -> bool:
+        """Return True if this diagnostic family has already been ordered."""
+        existing = set(patient.test_results.keys())
+        if action_val == TriageAction.ORDER_ECG.value:
+            return "ecg" in existing
+        if action_val == TriageAction.ORDER_LABS.value:
+            return bool(existing & {"troponin", "lactate", "wbc", "creatinine"})
+        if action_val == TriageAction.ORDER_XRAY.value:
+            return "cxr" in existing
+        if action_val == TriageAction.ORDER_CT.value:
+            return any(key.startswith("ct_") for key in existing)
+        return False
 
     def _final_grade(self) -> Tuple[float, Dict]:
         """Run the appropriate grader at episode end."""
