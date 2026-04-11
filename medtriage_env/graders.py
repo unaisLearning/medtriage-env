@@ -68,7 +68,7 @@ class Task1Grader:
         # --- Primary ESI score ---
         if assigned_esi is None:
             esi_score = 0.0
-            breakdown["esi_component"] = 0.0
+            breakdown["esi_component"] = _strict_unit_interval(0.0)
             breakdown["esi_note"] = "No ESI assigned"
         else:
             delta = abs(assigned_esi - ground_truth_esi)
@@ -80,7 +80,7 @@ class Task1Grader:
                 esi_score = self.OFF_BY_2
             else:
                 esi_score = self.OFF_BY_GE_3
-            breakdown["esi_component"] = esi_score
+            breakdown["esi_component"] = _strict_unit_interval(esi_score)
             breakdown["esi_assigned"] = assigned_esi
             breakdown["esi_ground_truth"] = ground_truth_esi
             breakdown["esi_delta"] = delta
@@ -182,7 +182,7 @@ class Task2Grader:
 
         normalized_tau = (tau + 1.0) / 2.0
         breakdown["pairwise_tau"] = round(tau, 4)
-        breakdown["pairwise_score"] = round(normalized_tau, 4)
+        breakdown["pairwise_score"] = round(_strict_unit_interval(normalized_tau), 4)
         breakdown["ignored_tied_pairs"] = skipped_ties
 
         # Small bonus/penalty for the most critical patient
@@ -260,7 +260,7 @@ class Task3Grader:
         else:
             delta = abs(assigned_esi - ground_truth_esi)
             esi_score = max(0.0, 1.0 - (delta * 0.4))
-        breakdown["esi_score"] = round(esi_score, 4)
+        breakdown["esi_score"] = round(_strict_unit_interval(esi_score), 4)
 
         # --- Component 2: Escalation timeliness ---
         # Earlier is better once the patient starts to worsen.
@@ -291,7 +291,7 @@ class Task3Grader:
         # Missed deterioration should hurt the score.
         missed_penalty = min(0.30, missed_deteriorations * 0.10)
         escalation_score = max(0.0, escalation_score - missed_penalty)
-        breakdown["escalation_score"] = round(escalation_score, 4)
+        breakdown["escalation_score"] = round(_strict_unit_interval(escalation_score), 4)
         breakdown["missed_deteriorations"] = missed_deteriorations
 
         # --- Component 3: Diagnostic coverage ---
@@ -319,7 +319,7 @@ class Task3Grader:
             diagnostic_score = covered / len(required_diagnostics)
         else:
             diagnostic_score = 0.999 if diagnostic_actions_taken else 0.5
-        breakdown["diagnostic_score"] = round(diagnostic_score, 4)
+        breakdown["diagnostic_score"] = round(_strict_unit_interval(diagnostic_score), 4)
 
         # --- Component 4: Efficiency ---
         # Fewer steps to the right action gets a better score.
@@ -328,7 +328,7 @@ class Task3Grader:
         actual_steps = escalation_step_val
         efficiency_ratio = max(0.0, 1.0 - (actual_steps - ideal_steps) / max_steps)
         efficiency_score = efficiency_ratio
-        breakdown["efficiency_score"] = round(efficiency_score, 4)
+        breakdown["efficiency_score"] = round(_strict_unit_interval(efficiency_score), 4)
 
         # --- Weighted final ---
         final = (
