@@ -266,7 +266,8 @@ def run_episode(
         except Exception:
             episode_info["final_score"] = max(0.0, min(1.0, total_reward / max_steps))
         # Print [END] for max_steps case where done was never True
-        print(f"[END] {{"task_id": "{task_id}", "seed": {seed}, "score": {round(float(episode_info["final_score"] or 0.0), 4)}}}", flush=True)
+        final_score_val = round(float(episode_info["final_score"] or 0.0), 4)
+        print("[END] {" + '{"task_id": "' + task_id + '", "seed": ' + str(seed) + ', "score": ' + str(final_score_val) + "}", flush=True)
 
     env.close()
     return float(episode_info["final_score"] or 0.0), episode_info
