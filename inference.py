@@ -281,8 +281,8 @@ def main() -> None:
     print(f"  API   : {API_BASE_URL}")
     print("=" * 65)
 
-    if not API_KEY:
-        print("[WARNING] HF_TOKEN / API_KEY not set. Requests may fail.")
+    if not HF_TOKEN:
+        print("[WARNING] HF_TOKEN not set. Requests may fail.")
 
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN or "none")
 
