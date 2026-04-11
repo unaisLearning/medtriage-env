@@ -23,6 +23,11 @@ def _strict_unit_interval(value: float) -> float:
 
 
 # ---------------------------------------------------------------------------
+def _strict_clamp(score: float) -> float:
+    """Clamp score to strictly open interval (0, 1) as required by judges."""
+    return max(0.001, min(0.999, float(score)))
+
+
 # Task 1 Grader — Single patient ESI classification
 # ---------------------------------------------------------------------------
 
