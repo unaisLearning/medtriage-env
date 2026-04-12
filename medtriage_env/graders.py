@@ -276,7 +276,7 @@ class Task3Grader:
                 escalation_score = max(0.2, 0.6 - (abs(steps_after) - 1) * 0.15)
                 breakdown["escalation_note"] = "Premature escalation"
             elif steps_after == 0:
-                escalation_score = 0.999
+                escalation_score = 0.994
                 breakdown["escalation_note"] = "Escalated at deterioration onset"
             elif steps_after == 1:
                 escalation_score = 0.85
@@ -321,7 +321,7 @@ class Task3Grader:
             covered = len(diagnostic_actions_taken & required_diagnostics)
             diagnostic_score = covered / len(required_diagnostics)
         else:
-            diagnostic_score = 0.999 if diagnostic_actions_taken else 0.5
+            diagnostic_score = 0.994 if diagnostic_actions_taken else 0.5
         breakdown["diagnostic_score"] = round(_strict_unit_interval(diagnostic_score), 4)
 
         # --- Component 4: Efficiency ---

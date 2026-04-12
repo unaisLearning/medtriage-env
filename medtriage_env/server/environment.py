@@ -297,7 +297,7 @@ class MedTriageEnvironment:
             # Final grading
             if self._state.task_score is None:
                 final_score, _grade_breakdown = self._final_grade()
-                self._state.task_score = final_score  # type: ignore
+                self._state.task_score = max(0.001, min(0.994, float(final_score)))  # strict open interval
                 info["final_score"] = final_score
 
         obs = self._build_observation(step_reward=step_reward)
@@ -602,7 +602,7 @@ class MedTriageEnvironment:
         else:
             score, breakdown = 0.06, {}
 
-        self._state.task_score = score  # type: ignore
+        self._state.task_score = max(0.001, min(0.994, float(score)))  # strict open interval
         return score, breakdown
 
     def _build_observation(self, step_reward: float) -> MedTriageObservation:
