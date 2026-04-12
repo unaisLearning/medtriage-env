@@ -53,6 +53,12 @@ TASK2_LEGAL = [
 ]
 
 TASK3_LEGAL = list(TriageAction)  # All actions available
+STRICT_SCORE_MIN = 0.06
+STRICT_SCORE_MAX = 0.94
+
+
+def _strict_unit_interval(value: float) -> float:
+    return max(STRICT_SCORE_MIN, min(STRICT_SCORE_MAX, float(value)))
 
 
 def _legal_ints(actions) -> List[int]:
@@ -297,8 +303,8 @@ class MedTriageEnvironment:
             # Final grading
             if self._state.task_score is None:
                 final_score, _grade_breakdown = self._final_grade()
-                self._state.task_score = max(0.001, min(0.994, float(final_score)))  # strict open interval
-                info["final_score"] = max(0.001, min(0.994, float(final_score)))
+                self._state.task_score = _strict_unit_interval(final_score)
+                info["final_score"] = _strict_unit_interval(final_score)
 
         obs = self._build_observation(step_reward=step_reward)
         return StepResult(observation=obs, reward=step_reward, done=self._done, info=info)
@@ -602,7 +608,7 @@ class MedTriageEnvironment:
         else:
             score, breakdown = 0.06, {}
 
-        self._state.task_score = max(0.001, min(0.994, float(score)))  # strict open interval
+        self._state.task_score = _strict_unit_interval(score)
         return score, breakdown
 
     def _build_observation(self, step_reward: float) -> MedTriageObservation:

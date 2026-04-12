@@ -157,7 +157,7 @@ class VitalSigns(BaseModel):
     )
     pain_level: int = Field(
         ...,
-        alias="pain_score",
+        validation_alias="pain_score",
         ge=0, le=10,
         description="Pain level on a 0-10 scale (0 = none, 10 = worst imaginable).",
     )

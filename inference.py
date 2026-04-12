@@ -56,6 +56,44 @@ STRICT_SCORE_MAX = 0.94
 def _strict_unit_interval(value: float) -> float:
     return min(STRICT_SCORE_MAX, max(STRICT_SCORE_MIN, value))
 
+
+BENCHMARK = "medtriage_env"
+
+
+def _format_error(error: Optional[str]) -> str:
+    return error if error else "null"
+
+
+def _format_bool(value: bool) -> str:
+    return str(value).lower()
+
+
+def _format_action(action_name: str, rankings: Optional[List[str]] = None) -> str:
+    if rankings:
+        return f"{action_name}[{','.join(rankings)}]"
+    return action_name
+
+
+def log_start(task: str, env: str, model: str) -> None:
+    print(f"[START] task={task} env={env} model={model}", flush=True)
+
+
+def log_step(step: int, action: str, reward: float, done: bool, error: Optional[str]) -> None:
+    print(
+        f"[STEP] step={step} action={action} reward={reward:.2f} "
+        f"done={_format_bool(done)} error={_format_error(error)}",
+        flush=True,
+    )
+
+
+def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+    rewards_str = ",".join(f"{reward:.2f}" for reward in rewards)
+    print(
+        f"[END] success={_format_bool(success)} steps={steps} "
+        f"score={score:.2f} rewards={rewards_str}",
+        flush=True,
+    )
+
 # ---------------------------------------------------------------------------
 # System prompt
 # ---------------------------------------------------------------------------
@@ -192,11 +230,10 @@ def run_episode(
         "steps":      [],
         "final_score": None,
     }
+    rewards: List[float] = []
+    last_error: Optional[str] = None
 
-    print(f'[START] {{"task_id": "{task_id}", "seed": {seed}, "model": "{MODEL_NAME}"}}', flush=True)
-    if verbose:
-        print(f"\n  Episode: task={task_id}, seed={seed}")
-        print(f"  Clinical: {obs.clinical_summary.splitlines()[0]}")
+    log_start(task=task_id, env=BENCHMARK, model=MODEL_NAME)
 
     total_reward = 0.0
 
@@ -219,7 +256,7 @@ def run_episode(
             )
             raw_response = completion.choices[0].message.content or ""
         except Exception as exc:
-            print(f"  [WARNING] LLM call failed at step {step+1}: {exc}")
+            last_error = str(exc)
             raw_response = json.dumps({"action": FALLBACK_ACTION, "reasoning": "api error"})
 
         # ── Parse ─────────────────────────────────────────────────────
@@ -235,6 +272,7 @@ def run_episode(
         # ── Step environment ───────────────────────────────────────────
         result = env.step(action)
         total_reward += result.reward
+        rewards.append(result.reward)
         obs = result.observation
 
         step_log = {
@@ -246,27 +284,14 @@ def run_episode(
             "done":      result.done,
         }
         episode_info["steps"].append(step_log)
-        print(f'[STEP] {{"step": {step+1}, "action": "{TriageAction(action_id).name}", "reward": {round(result.reward, 4)}, "done": {str(result.done).lower()}}}', flush=True)
-
-        if verbose:
-            print(
-                f"  Step {step+1}: {TriageAction(action_id).name:25s} "
-                f"reward={result.reward:+.3f}  "
-                f"{'[DONE]' if result.done else ''}"
-            )
+        action_str = _format_action(TriageAction(action_id).name, rankings)
+        log_step(step=step + 1, action=action_str, reward=result.reward, done=result.done, error=last_error)
+        last_error = None
 
         if result.done:
             final_score = result.info.get("final_score")
             if final_score is not None:
                 episode_info["final_score"] = _strict_unit_interval(float(final_score))
-                if verbose:
-                    print(f"  Final score: {float(episode_info['final_score']):.6f}")
-            end_payload = {
-                "task_id": task_id,
-                "seed": seed,
-                "score": _strict_unit_interval(float(episode_info["final_score"] or 0.0)),
-            }
-            print(f"[END] {json.dumps(end_payload)}", flush=True)
             break
 
     # Retrieve final score from state if not in last step info
@@ -276,17 +301,12 @@ def run_episode(
             episode_info["final_score"] = _strict_unit_interval(float(state.task_score or 0.0))
         except Exception:
             episode_info["final_score"] = _strict_unit_interval(total_reward / max_steps)
-        # Print [END] for max_steps case where done was never True
-        final_score_val = _strict_unit_interval(float(episode_info["final_score"] or 0.0))
-        end_payload = {
-            "task_id": task_id,
-            "seed": seed,
-            "score": final_score_val,
-        }
-        print(f"[END] {json.dumps(end_payload)}", flush=True)
 
     env.close()
-    return _strict_unit_interval(float(episode_info["final_score"] or 0.0)), episode_info
+    final_score_val = _strict_unit_interval(float(episode_info["final_score"] or 0.0))
+    success = final_score_val > 0.5
+    log_end(success=success, steps=len(episode_info["steps"]), score=final_score_val, rewards=rewards)
+    return final_score_val, episode_info
 
 
 # ---------------------------------------------------------------------------
@@ -294,14 +314,8 @@ def run_episode(
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    print("=" * 65)
-    print("  MedTriageEnv — Baseline Inference")
-    print(f"  Model : {MODEL_NAME}")
-    print(f"  API   : {API_BASE_URL}")
-    print("=" * 65)
-
     if not HF_TOKEN:
-        print("[WARNING] HF_TOKEN not set. Requests may fail.")
+        print("[WARN] HF_TOKEN not set. Requests may fail.", file=sys.stderr, flush=True)
 
     client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN or "none")
 
@@ -317,10 +331,6 @@ def main() -> None:
     start_time = time.time()
 
     for task_id in tasks:
-        print(f"\n{'─'*65}")
-        print(f"  TASK: {task_id}")
-        print(f"{'─'*65}")
-
         for seed in SEEDS:
             try:
                 score, episode_info = run_episode(
@@ -330,38 +340,25 @@ def main() -> None:
                     verbose=True,
                 )
             except Exception as exc:
-                print(f"  [ERROR] Episode failed (task={task_id}, seed={seed}): {exc}")
+                print(
+                    f"[ERROR] Episode failed (task={task_id}, seed={seed}): {exc}",
+                    file=sys.stderr,
+                    flush=True,
+                )
                 score = _strict_unit_interval(0.0)
                 episode_info = {"task_id": task_id, "seed": seed, "error": str(exc), "final_score": score}
 
             all_results[task_id].append(score)
             all_episodes.append(episode_info)
 
-    # ── Summary ──────────────────────────────────────────────────────────
     elapsed = time.time() - start_time
-    print(f"\n{'=' * 65}")
-    print("  BASELINE SCORES")
-    print(f"{'=' * 65}")
-
-    task_labels = {
-        "task1_single_patient":       "Task 1 — Single patient ESI   (easy)  ",
-        "task2_multi_patient":        "Task 2 — Multi-patient ranking (medium)",
-        "task3_dynamic_deterioration":"Task 3 — Dynamic deterioration (hard)  ",
-    }
-
     scores_summary: Dict[str, float] = {}
     for task_id in tasks:
         scores = all_results[task_id]
         avg = sum(scores) / len(scores) if scores else 0.0
         scores_summary[task_id] = avg
-        bar = "█" * int(avg * 30)
-        print(f"  {task_labels[task_id]} {avg:.6f}  [{bar:<30}]")
-        print(f"    seeds={SEEDS}, scores={[round(_strict_unit_interval(s), 6) for s in scores]}")
 
     overall = sum(scores_summary.values()) / len(scores_summary)
-    print(f"\n  Overall mean: {overall:.6f}")
-    print(f"  Runtime:      {elapsed:.1f}s")
-    print("=" * 65)
 
     # ── Write JSON results for automated evaluation ───────────────────
     results_path = os.path.join(os.path.dirname(__file__), "baseline_results.json")
@@ -375,7 +372,7 @@ def main() -> None:
     }
     with open(results_path, "w") as f:
         json.dump(output, f, indent=2, default=str)
-    print(f"\n  Full results written to: {results_path}")
+    print(f"[INFO] Results written to: {results_path}", file=sys.stderr, flush=True)
 
 
 if __name__ == "__main__":
