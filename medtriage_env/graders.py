@@ -74,7 +74,7 @@ class Task1Grader:
 
         # --- Primary ESI score ---
         if assigned_esi is None:
-            esi_score = 0.0
+            esi_score = 0.001
             breakdown["esi_note"] = "No ESI assigned"
         else:
             delta = abs(assigned_esi - ground_truth_esi)
@@ -259,7 +259,7 @@ class Task3Grader:
 
         # --- Component 1: ESI accuracy ---
         if assigned_esi is None:
-            esi_score = 0.0
+            esi_score = 0.001
         else:
             delta = abs(assigned_esi - ground_truth_esi)
             esi_score = max(0.0, 1.0 - (delta * 0.4))
@@ -268,7 +268,7 @@ class Task3Grader:
         # --- Component 2: Escalation timeliness ---
         # Earlier is better once the patient starts to worsen.
         if escalation_step is None:
-            escalation_score = 0.0
+            escalation_score = 0.001
             breakdown["escalation_note"] = "No escalation detected"
         else:
             steps_after = escalation_step - deterioration_step
