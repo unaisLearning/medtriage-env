@@ -298,7 +298,7 @@ class MedTriageEnvironment:
             if self._state.task_score is None:
                 final_score, _grade_breakdown = self._final_grade()
                 self._state.task_score = max(0.001, min(0.994, float(final_score)))  # strict open interval
-                info["final_score"] = final_score
+                info["final_score"] = max(0.001, min(0.994, float(final_score)))
 
         obs = self._build_observation(step_reward=step_reward)
         return StepResult(observation=obs, reward=step_reward, done=self._done, info=info)
